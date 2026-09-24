@@ -1,0 +1,2018 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plataforma de Ideación — Iteración 2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* --- Paleta inspirada en Lovable: fondo oscuro + gradiente vibrante --- */
+    --bg-0: #0a0a12;
+    --bg-1: #100e1c;
+
+    --surface: #15131f;
+    --surface-2: #1b1829;
+    --surface-hover: #211d33;
+    --border: rgba(255, 255, 255, 0.10);
+    --border-strong: rgba(255, 255, 255, 0.18);
+
+    --text-primary: #f6f5fa;
+    --text-secondary: #b9b4c9;
+    --text-muted: #8b8599;
+
+    --grad-brand: linear-gradient(135deg, #f97316 0%, #ec4899 45%, #8b5cf6 75%, #6366f1 100%);
+    --purple: #a78bfa;
+    --purple-strong: #c4b5fd;
+    --purple-bg: rgba(167, 139, 250, 0.14);
+    --purple-border: rgba(167, 139, 250, 0.4);
+
+    --amber: #fbbf24;
+    --amber-bg: rgba(251, 191, 36, 0.14);
+    --blue: #60a5fa;
+    --blue-bg: rgba(96, 165, 250, 0.14);
+    --danger: #fb7185;
+    --danger-bg: rgba(251, 113, 133, 0.14);
+
+    /* alias retro-compatibles usados por el JS y el resto de la hoja */
+    --gold: var(--amber);
+    --purple-light: var(--purple-bg);
+    --gray-text: var(--text-secondary);
+    --gray-border: var(--border);
+    --gray-bg: var(--bg-0);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background-color: var(--bg-0);
+    background-image:
+      radial-gradient(680px circle at 8% -6%, rgba(124, 58, 237, 0.35), transparent 60%),
+      radial-gradient(620px circle at 100% 0%, rgba(236, 72, 153, 0.22), transparent 55%),
+      radial-gradient(700px circle at 50% 100%, rgba(249, 115, 22, 0.14), transparent 60%),
+      linear-gradient(180deg, var(--bg-1) 0%, var(--bg-0) 100%);
+    background-attachment: fixed;
+    color: var(--text-secondary);
+    display: flex;
+    justify-content: center;
+    padding: 40px 16px;
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+  .app { width: 100%; max-width: 720px; }
+
+  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .top-bar .app-title {
+    font-size: 12.5px; font-weight: 700; color: var(--text-primary); letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .btn-link {
+    background: none; border: none; color: var(--purple-strong); font-size: 13px;
+    padding: 6px 2px; text-decoration: none; font-weight: 600; cursor: pointer;
+    border-bottom: 1px solid transparent; transition: border-color .15s ease, color .15s ease;
+  }
+  .btn-link:hover { color: #fff; border-bottom-color: currentColor; }
+
+  .stage-bar {
+    display: flex; justify-content: space-between; margin-bottom: 24px; gap: 4px; flex-wrap: wrap;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 6px;
+  }
+  .stage-dot {
+    flex: 1; text-align: center; font-size: 10.5px; font-weight: 600; padding: 9px 6px; min-width: 70px;
+    border-radius: 10px; color: var(--text-muted); cursor: default; transition: all .15s ease;
+    border-bottom: none;
+  }
+  .stage-dot.active { background: var(--grad-brand); color: #fff; box-shadow: 0 4px 14px rgba(139, 92, 246, .35); }
+  .stage-dot.done { color: var(--purple-strong); cursor: pointer; }
+  .stage-dot.done:hover { background: var(--surface-hover); color: #fff; }
+
+  .card {
+    background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 32px;
+    box-shadow: 0 24px 60px -20px rgba(0, 0, 0, .55);
+  }
+  .card h1 { font-size: 21px; font-weight: 800; margin: 0 0 6px 0; color: var(--text-primary); letter-spacing: -.01em; }
+  .card h3 { font-size: 14px; font-weight: 700; margin: 20px 0 8px 0; color: var(--text-primary); }
+  .card .subtitle { font-size: 13.5px; color: var(--text-muted); margin: 0 0 22px 0; line-height: 1.5; }
+  .sub-progress { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; letter-spacing: .04em; text-transform: uppercase; font-weight: 600; }
+  label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 7px; color: var(--text-primary); }
+  .hint { font-size: 12px; color: var(--text-muted); margin: -3px 0 10px 0; line-height: 1.5; }
+  .required-mark { color: var(--danger); }
+
+  select, textarea, input[type="text"] {
+    width: 100%; font-family: inherit; font-size: 14px; padding: 11px 14px;
+    border: 1px solid var(--border); border-radius: 10px; margin-bottom: 18px;
+    resize: vertical; background: var(--bg-0); color: var(--text-primary);
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  textarea { min-height: 78px; }
+  select:focus, textarea:focus, input:focus {
+    outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px var(--purple-bg);
+  }
+  ::placeholder { color: var(--text-muted); opacity: 1; }
+  select option { background: var(--surface); color: var(--text-primary); }
+  input[type="file"] {
+    width: 100%; font-family: inherit; font-size: 12.5px; color: var(--text-secondary);
+    background: var(--bg-0); border: 1px dashed var(--border-strong); border-radius: 10px; padding: 12px 14px;
+  }
+  input[type="file"]::file-selector-button {
+    font-family: inherit; font-size: 12.5px; font-weight: 600; margin-right: 12px;
+    background: var(--surface-hover); color: var(--text-primary);
+    border: 1px solid var(--border-strong); border-radius: 8px; padding: 7px 14px; cursor: pointer;
+  }
+  input[type="checkbox"] { accent-color: var(--purple); width: 16px; height: 16px; }
+
+  .question-text {
+    background: var(--purple-bg); border: 1px solid var(--purple-border); border-radius: 12px; padding: 16px 18px;
+    font-size: 14.5px; color: var(--text-primary); margin-bottom: 18px; line-height: 1.5;
+  }
+
+  .nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 10px; flex-wrap: wrap; }
+  button {
+    font-family: inherit; font-size: 14px; font-weight: 600; padding: 11px 20px; border-radius: 10px;
+    border: none; cursor: pointer; transition: opacity .15s ease, transform .1s ease, box-shadow .15s ease;
+  }
+  .btn-primary {
+    background: var(--grad-brand); color: #fff; margin-left: auto;
+    box-shadow: 0 8px 20px -8px rgba(236, 72, 153, .55);
+  }
+  .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 10px 24px -8px rgba(236, 72, 153, .65); }
+  .btn-primary:disabled { background: var(--surface-2); color: var(--text-muted); cursor: not-allowed; box-shadow: none; }
+  .btn-secondary { background: transparent; color: var(--text-primary); border: 1px solid var(--border-strong); }
+  .btn-secondary:hover { background: var(--surface-hover); border-color: var(--purple-border); }
+  .spacer { flex: 1; }
+  .final-note { text-align: center; color: var(--purple-strong); font-size: 14px; font-weight: 600; padding: 10px 0 20px 0; }
+
+  .suggestion-field { margin-bottom: 20px; }
+  .badge {
+    display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: .04em;
+    text-transform: uppercase; padding: 3px 10px; border-radius: 20px; margin-bottom: 7px;
+    border: 1px solid transparent;
+  }
+  .badge.sugerido { background: var(--amber-bg); color: var(--amber); border-color: rgba(251, 191, 36, .3); }
+  .badge.editado { background: var(--purple-bg); color: var(--purple-strong); border-color: var(--purple-border); }
+  .badge.banco { background: var(--blue-bg); color: var(--blue); border-color: rgba(96, 165, 250, .3); }
+  .field-label { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
+
+  .context-list { margin-bottom: 24px; }
+  .context-list-item {
+    border: 1px solid var(--border); border-radius: 12px; padding: 13px 16px;
+    margin-bottom: 10px; font-size: 13.5px; background: var(--surface);
+  }
+  .context-list-item .ctx-name { font-weight: 600; color: var(--text-primary); }
+  .context-list-item .ctx-type { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+  .empty-state { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+  .section-divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+  .file-input-wrap { margin-bottom: 10px; }
+  .file-chip {
+    display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 12px; margin-bottom: 7px; font-size: 12.5px; background: var(--surface);
+    color: var(--text-secondary);
+  }
+  .file-chip small { color: var(--text-muted); }
+  .btn-remove-file { background: none; border: none; color: var(--danger); font-size: 13px; cursor: pointer; padding: 0 4px; }
+  .ctx-docs { font-size: 11.5px; color: var(--purple-strong); margin-top: 5px; }
+
+  /* ---------- Encuadre: hero, campos y preguntas ---------- */
+  .encuadre-hero-icon-wrap {
+    width: 56px; height: 56px; border-radius: 16px;
+    background: var(--purple-bg); border: 1px solid var(--purple-border);
+    display: flex; align-items: center; justify-content: center; margin-bottom: 18px;
+  }
+  .encuadre-hero-icon-wrap svg { width: 26px; height: 26px; }
+  .accent-line {
+    width: 44px; height: 3px; background: var(--grad-brand);
+    border-radius: 2px; margin: 14px 0 18px 0;
+  }
+
+  .campo-grupo { padding: 18px 0; border-top: 1px solid var(--border); }
+  .campo-grupo:first-of-type { border-top: none; padding-top: 4px; }
+  .campo-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .campo-header svg { width: 20px; height: 20px; flex: none; }
+  .campo-header label { margin-bottom: 0; }
+
+  .pregunta-row { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 4px; }
+  .pregunta-icon { flex: none; width: 26px; height: 26px; margin-top: 14px; }
+  .pregunta-icon svg { width: 100%; height: 100%; }
+  .pregunta-row .question-text { flex: 1; min-width: 0; margin-bottom: 0; }
+
+  /* ---------- Deconstrucción interactiva ---------- */
+  .nivel-section { margin-bottom: 20px; padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+  .nivel-title { font-size: 13.5px; font-weight: 700; color: var(--purple-strong); margin-bottom: 10px; letter-spacing: .01em; }
+  .item-list { margin-bottom: 12px; }
+  .item-chip {
+    display: inline-flex; align-items: center; gap: 6px; background: var(--purple-bg); color: var(--text-primary);
+    border: 1px solid var(--purple-border);
+    border-radius: 20px; padding: 6px 6px 6px 14px; font-size: 12.5px; margin: 0 6px 6px 0;
+  }
+  .btn-remove-item { background: none; border: none; color: var(--purple-strong); font-size: 12px; cursor: pointer; padding: 2px 6px; }
+  .add-item-row { display: flex; gap: 8px; }
+  .add-item-row input { margin-bottom: 0; }
+  .add-item-row button { white-space: nowrap; padding: 10px 16px; font-size: 13px; }
+
+  /* ---------- Giro semántico ---------- */
+  .tradicional-fija {
+    background: var(--surface); border: 1px dashed var(--border-strong); border-radius: 12px;
+    padding: 14px 16px; margin: 0 0 20px 0; font-size: 13px; color: var(--text-secondary);
+    line-height: 1.6; font-style: italic;
+  }
+  .paradigm-diagram { background: var(--surface); border: 1px dashed var(--border-strong); border-radius: 12px; padding: 14px 16px; margin-bottom: 20px; }
+  .paradigm-row { font-size: 13px; color: var(--text-secondary); margin: 5px 0; }
+  .paradigm-tag {
+    display: inline-block; font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 6px; margin-right: 8px;
+  }
+  .paradigm-tag.old { background: var(--danger-bg); color: var(--danger); }
+  .paradigm-tag.new { background: var(--blue-bg); color: var(--blue); }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 20px; }
+  .chip-option {
+    background: var(--surface); border: 1px solid var(--border-strong); color: var(--text-primary);
+    border-radius: 20px; padding: 8px 16px; font-size: 12.5px; font-weight: 500; cursor: pointer; transition: all .15s ease;
+  }
+  .chip-option:hover { background: var(--surface-hover); border-color: var(--purple-border); }
+  .chip-option.selected { background: var(--grad-brand); border-color: transparent; color: #fff; font-weight: 600; }
+
+  /* ---------- Propuestas generadas ---------- */
+  .banco-note { font-size: 11.5px; color: var(--text-muted); font-style: italic; margin: 5px 0 20px 0; line-height: 1.5; }
+  .propuesta-full-card {
+    display: flex; gap: 14px; border: 1px solid var(--border); border-radius: 14px;
+    padding: 16px; margin-bottom: 12px; background: var(--surface); cursor: pointer; transition: all .15s ease;
+  }
+  .propuesta-full-card:hover { border-color: var(--purple-border); background: var(--surface-hover); }
+  .propuesta-full-card.seleccionada { border-color: var(--purple); border-width: 2px; background: var(--purple-bg); }
+  .check-elegida { font-size: 11px; font-weight: 700; color: var(--purple-strong); margin-left: 6px; }
+  .propuesta-icon { flex: none; width: 44px; height: 44px; }
+  .propuesta-full-body { flex: 1; min-width: 0; }
+  .propuesta-full-nombre { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+  .propuesta-full-tags { margin-bottom: 9px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .propuesta-full-tags span {
+    display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+    border-radius: 10px; padding: 3px 9px;
+  }
+  .tag-formato { background: var(--purple-bg); color: var(--purple-strong); }
+  .tag-mecanismo { background: var(--blue-bg); color: var(--blue); }
+  .tag-nivel { background: var(--amber-bg); color: var(--amber); }
+  .propuesta-full-desc { font-size: 12.5px; color: var(--text-secondary); line-height: 1.55; }
+  .propuesta-ficha { font-size: 11.5px; color: var(--purple-strong); margin-top: 7px; font-style: italic; }
+  .propuesta-eval-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin: 0 0 16px 0; }
+  .propuesta-final-nombre {
+    font-size: 22px; font-weight: 800; margin: 4px 0 12px 0; letter-spacing: -.01em;
+    background: var(--grad-brand); -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .badge-diferenciador {
+    display: inline-flex; align-items: center; font-size: 10.5px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .04em;
+    color: var(--amber); background: var(--amber-bg); border: 1px solid rgba(251, 191, 36, .3);
+    border-radius: 20px; padding: 3px 10px;
+  }
+
+  /* ---------- Simulador de evaluación ---------- */
+  .dim-row { margin-bottom: 20px; }
+  .dim-label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .dim-level { font-weight: 700; color: var(--purple-strong); }
+  input[type="range"] {
+    width: 100%; margin: 10px 0 2px 0; -webkit-appearance: none; appearance: none;
+    height: 6px; border-radius: 4px; background: var(--surface-2); outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--grad-brand); cursor: pointer; box-shadow: 0 2px 8px rgba(139, 92, 246, .5);
+    border: 2px solid #fff;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 18px; height: 18px; border-radius: 50%; background: var(--grad-brand); cursor: pointer;
+    border: 2px solid #fff; box-shadow: 0 2px 8px rgba(139, 92, 246, .5);
+  }
+  .radar-wrap { display: flex; justify-content: center; margin: 8px 0 20px 0; }
+  .diagnostico-box {
+    background: var(--purple-bg); border: 1px solid var(--purple-border); border-radius: 12px; padding: 16px 18px; font-size: 13.5px;
+    color: var(--text-primary); line-height: 1.6; margin-bottom: 20px;
+  }
+
+  /* ---------- Mejoras sugeridas ---------- */
+  .mejora-box {
+    background: var(--blue-bg); border: 1px solid rgba(96, 165, 250, .3); border-radius: 12px;
+    padding: 16px 18px; font-size: 13.5px; color: var(--text-primary); line-height: 1.6; margin-bottom: 20px;
+  }
+  .mejora-etiqueta {
+    font-size: 10.5px; font-weight: 700; color: var(--blue); margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: .04em;
+  }
+  .mejora-lista { margin-bottom: 20px; }
+  .mejora-item {
+    display: flex; align-items: flex-start; gap: 14px; padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .mejora-item:last-child { border-bottom: none; }
+  .mejora-item.aplicada {
+    background: var(--blue-bg); border: 1px solid rgba(96, 165, 250, .3);
+    border-radius: 12px; padding: 14px 16px; margin-bottom: 8px;
+  }
+  .mejora-item-texto { flex: 1; min-width: 0; font-size: 12.5px; color: var(--text-secondary); line-height: 1.6; }
+  .mejora-item-texto p { margin: 0; }
+  .mejora-item .btn-toggle-mejora { flex: none; white-space: nowrap; padding: 9px 16px; font-size: 12.5px; }
+
+  /* ---------- Tabla comparativa ---------- */
+  .tabla-comparativa-wrap {
+    overflow-x: auto; margin-bottom: 10px;
+    border: 1px solid var(--border); border-radius: 12px; background: var(--surface);
+  }
+  .tabla-comparativa { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+  .tabla-comparativa th, .tabla-comparativa td {
+    border-bottom: 1px solid var(--border); padding: 10px 12px; text-align: center; white-space: nowrap;
+    color: var(--text-secondary);
+  }
+  .tabla-comparativa tr:last-child td { border-bottom: none; }
+  .tabla-comparativa th {
+    color: var(--text-muted); font-weight: 700; font-size: 10px;
+    text-transform: uppercase; letter-spacing: .04em; background: var(--surface-2);
+  }
+  .tabla-comparativa td:first-child, .tabla-comparativa th:first-child {
+    text-align: left; white-space: normal; min-width: 150px;
+  }
+  .tabla-comparativa tr.fila-recomendada td {
+    background: var(--purple-bg); color: var(--text-primary); font-weight: 700;
+  }
+
+  /* ---------- Carga ---------- */
+  .loading-wrap { display: flex; flex-direction: column; align-items: center; padding: 46px 10px; gap: 18px; }
+  .spinner {
+    width: 36px; height: 36px; border: 4px solid var(--surface-2); border-top-color: var(--purple);
+    border-radius: 50%; animation: girar 0.8s linear infinite;
+  }
+  @keyframes girar { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="top-bar">
+    <span class="app-title">Ideación de Souvenirs — Uninorte</span>
+    <div>
+      <button class="btn-link" id="btnToggleHistorial" style="margin-right:14px;"></button>
+      <button class="btn-link" id="btnToggleContextos"></button>
+    </div>
+  </div>
+  <div class="stage-bar" id="stageBar"></div>
+  <div class="card" id="cardContent"></div>
+</div>
+
+<script>
+/* =========================================================
+   1. BASE DE DATOS DE CONTEXTOS
+   ========================================================= */
+const BASE_DATOS_CONTEXTOS = {
+  educacion: [
+    { id: 'eaud', nombre: 'EAUD — Escuela de Arquitectura, Urbanismo y Diseño (Uninorte)' },
+    { id: 'uninorte', nombre: 'Universidad del Norte (institucional, general)' },
+    { id: 'autonoma_caribe', nombre: 'Universidad Autónoma del Caribe' },
+    { id: 'simon_bolivar', nombre: 'Universidad Simón Bolívar (Barranquilla)' },
+    { id: 'u_magdalena', nombre: 'Universidad del Magdalena' },
+    { id: 'javeriana', nombre: 'Pontificia Universidad Javeriana' },
+    { id: 'uniandes', nombre: 'Universidad de los Andes' },
+    { id: 'eafit', nombre: 'Universidad EAFIT' },
+    { id: 'icesi', nombre: 'Universidad Icesi' },
+    { id: 'upb', nombre: 'Universidad Pontificia Bolivariana' }
+  ],
+  empresas: [
+    { id: 'tecnoglass', nombre: 'Tecnoglass' },
+    { id: 'olimpica', nombre: 'Almacenes Olímpica' },
+    { id: 'promigas', nombre: 'Promigas' },
+    { id: 'teamfoods', nombre: 'Team Foods' }
+  ]
+};
+
+let contextosPersonalizados = [];
+
+function todosLosContextos() {
+  return [...BASE_DATOS_CONTEXTOS.educacion, ...BASE_DATOS_CONTEXTOS.empresas, ...contextosPersonalizados];
+}
+function buscarContexto(id) { return todosLosContextos().find(c => c.id === id) || null; }
+function nombreContexto(id) { const c = buscarContexto(id); return c ? c.nombre : 'este contexto'; }
+function esEAUD() { return state.encuadre.contextoId === 'eaud'; }
+
+const NIVEL_LABEL = { objeto: 'Objeto', servicio: 'Servicio / Interacción', sistema: 'Sistema', cultura: 'Cultura / Comunidad' };
+
+const SEED_DECONSTRUCCION_EAUD = {
+  objeto: ['Camisetas, gorras y mochilas del Almacén Mapuka', 'Tote bags y medallas usadas en eventos institucionales'],
+  servicio: ['Graduaciones y ceremonias de grado', 'Muestras y ferias de diseño de fin de semestre'],
+  sistema: ['3 programas de pregrado (Arquitectura, Diseño Industrial, Diseño Gráfico) + 2 maestrías', 'Vínculo entre estudiantes, docentes, investigadores y egresados'],
+  cultura: ['Valores institucionales: excelencia, liderazgo, ética, pertenencia y verdad', 'Identidad visual asociada al color morado y al Bloque L']
+};
+
+/* =========================================================
+   1.1 COMPETENCIA — basada en los documentos reales del proyecto
+   (Identidad y representación en Facultades de Diseño), no simulada.
+   ========================================================= */
+const COMPETIDORES_CONOCIDOS = [
+  { nombre: 'Universidad Simón Bolívar', resumen: 'Su área de diseño no tiene un souvenir propio; se reconoce de forma espontánea por elementos del taller (overoles, pintura, madera), no por un objeto diseñado intencionalmente.' },
+  { nombre: 'Universidad Autónoma del Caribe', resumen: 'Tuvo una iniciativa estudiantil (Tienda del Diseño, inspirada en fauna y flora del Caribe) pero no se identificó una línea vigente y propia de la facultad.' },
+  { nombre: 'Universidad EAFIT', resumen: 'No tiene souvenirs propios del programa de diseño; su identidad se construye alrededor de los talleres como espacio de pertenencia, no de un objeto.' },
+  { nombre: 'Universidad de Medellín', resumen: 'Cuenta con souvenirs institucionales genéricos (termos, buzos, pines) pero ninguno específico de su Facultad de Diseño.' },
+  { nombre: 'Universidad de los Andes', resumen: 'Tiene tienda institucional con productos genéricos y un símbolo propio (Séneca), pero nada específico de su Facultad de Arquitectura y Diseño.' },
+  { nombre: 'Universidad Nacional de Colombia', resumen: 'Cuenta con una tienda institucional amplia organizada en colecciones temáticas, pero tampoco tiene souvenirs exclusivos de su Escuela de Diseño Industrial.' }
+];
+
+function obtenerCompetidores() {
+  const personalizados = contextosPersonalizados
+    .filter(c => c.esCompetidora)
+    .map(c => ({ nombre: c.nombre, resumen: c.descripcion }));
+  return [...COMPETIDORES_CONOCIDOS, ...personalizados];
+}
+
+// Diagnóstico de diferenciación: dado que ninguna universidad analizada tiene
+// una línea de souvenirs de diseño realmente distintiva (la mayoría se queda
+// en merchandising institucional genérico o no tiene souvenir propio), una
+// propuesta que sea solo "un objeto físico" sin un mecanismo relacional se
+// parece a lo que ya existe; cualquier otra combinación ya es una diferencia real.
+function esDiferenciadorFrenteACompetencia(propuesta) {
+  const mecanismosRelacionales = ['colectivo', 'conector', 'evolutivo', 'invertido'];
+  if (propuesta.formatoId !== 'objeto') return true;
+  return mecanismosRelacionales.includes(propuesta.mecanismoId);
+}
+
+/* =========================================================
+   2. ESTADO CENTRAL
+   ========================================================= */
+const state = {
+  stages: ['encuadre', 'deconstruccion', 'giro', 'red', 'propuestas', 'evaluacion'],
+  stageLabels: {
+    encuadre: 'Encuadre', deconstruccion: 'Deconstrucción', giro: 'Giro Semántico',
+    red: 'Red de Intérpretes', propuestas: 'Propuestas Generadas', evaluacion: 'Evaluación Sistémica'
+  },
+  currentStageIndex: 0,
+  maxStageReached: 0,
+  view: 'proceso',
+
+  encuadre: {
+    screen: 0, contextoId: 'eaud', reto: '',
+    huecos: { usuario: '', momento: '', restriccion: '' }, cola: null
+  },
+
+  deconstruccion: {
+    niveles: { objeto: [], servicio: [], sistema: [], cultura: [] },
+    seedApplied: false
+  },
+
+  giro: {
+    tradicional: '', significado: '',
+    estadoSignificado: 'sugerido',
+    arquetipoElegidoId: null,
+    generado: false
+  },
+
+  red: { campos: { campo1: '', campo2: '' }, editado: { campo1: false, campo2: false }, generado: false },
+
+  propuestasGeneradas: { lista: [], generado: false, seleccionadas: [], mostrarDiferenciacion: false },
+
+  evaluacion: {
+    propuestaEnEvaluacionId: null,
+    propuestaElegidaId: null,
+    elegidaAutomaticamente: false,
+    scoresPorPropuesta: {},
+    mejorasAplicadas: {},
+    finalizado: false
+  }
+};
+
+let archivosSeleccionados = [];
+
+/* =========================================================
+   3. NAVEGACIÓN COMPARTIDA
+   ========================================================= */
+function irAEtapaAnterior() {
+  if (state.currentStageIndex === 0) return;
+  state.currentStageIndex -= 1;
+  if (state.stages[state.currentStageIndex] === 'encuadre') {
+    state.encuadre.screen = state.encuadre.cola ? state.encuadre.cola.length : 1;
+  }
+  render();
+}
+function irASiguienteEtapa() {
+  state.currentStageIndex += 1;
+  state.maxStageReached = Math.max(state.maxStageReached, state.currentStageIndex);
+  render();
+}
+
+/* =========================================================
+   4. LÓGICA DEL ENCUADRE (sin cambios respecto a V1)
+   ========================================================= */
+const PALABRAS_PUBLICO = [
+  'estudiante', 'egresad', 'docente', 'profesor', 'funcionari', 'cliente', 'visitante', 'aspirante',
+  'padre', 'madre', 'niñ', 'joven', 'adulto', 'comunidad', 'usuario', 'persona', 'empresa',
+  'colaborador', 'empleado', 'turista', 'familia'
+];
+function textoMencionaPublico(texto) { const t = texto.toLowerCase(); return PALABRAS_PUBLICO.some(p => t.includes(p)); }
+
+const PREGUNTAS = {
+  usuario: { texto: () => "¿Para quién es principalmente? Piensa en una persona concreta, no en 'todo el mundo'." },
+  momento: { texto: (ctx) => `¿Qué momento de su relación con ${ctx} quieres tocar, o qué necesitan sentir en ese momento?` },
+  restriccion: { texto: () => '¿Hay alguna restricción, preferencia o límite importante que debamos respetar?' }
+};
+
+// Grupos de preguntas: cada grupo es una pantalla y puede contener 1 o más
+// campos. La 2ª pantalla combina momento + restricción en una sola. Si el
+// reto ya menciona el público, se salta el grupo de "usuario" y solo queda
+// 1 pantalla.
+function elegirGruposPreguntas(estado) {
+  const e = estado.encuadre;
+  const textoBase = `${e.reto} ${nombreContexto(e.contextoId)}`;
+  const grupos = [];
+  if (!textoMencionaPublico(textoBase)) grupos.push(['usuario']);
+  grupos.push(['momento', 'restriccion']);
+  return grupos;
+}
+
+/* =========================================================
+   5. GENERADOR DE RESPUESTAS POSIBLES (Red de Intérpretes)
+   ========================================================= */
+function generarSugerenciaRed() {
+  const e = state.encuadre;
+  const contexto = nombreContexto(e.contextoId);
+  const momento = e.huecos.momento || 'el momento que definiste en el Encuadre';
+  const restriccion = e.huecos.restriccion || 'la restricción que definiste en el Encuadre';
+  return {
+    campo1: `Alguien que no conozca bien ${contexto} probablemente valoraría la propuesta primero por su estética, y solo después —si alguien se lo explica— por su significado. Eso sugiere que el relato detrás de "${momento}" necesita acompañamiento, no solo el objeto.`,
+    campo2: `La restricción "${restriccion}" podría entrar en tensión con darle demasiado protagonismo al objeto físico, sobre todo si el presupuesto o los materiales disponibles son limitados.`
+  };
+}
+
+/* =========================================================
+   6. RENDERIZADO GENERAL
+   ========================================================= */
+function render() {
+  document.getElementById('btnToggleContextos').textContent = state.view === 'contextos' ? '← Volver al proceso' : 'Gestionar contextos';
+  document.getElementById('btnToggleHistorial').textContent = state.view === 'historial' ? '← Volver al proceso' : 'Historial';
+
+  if (state.view === 'contextos') {
+    document.getElementById('stageBar').style.display = 'none';
+    renderGestionContextos(document.getElementById('cardContent'));
+    return;
+  }
+  if (state.view === 'historial') {
+    document.getElementById('stageBar').style.display = 'none';
+    renderHistorial(document.getElementById('cardContent'));
+    return;
+  }
+  document.getElementById('stageBar').style.display = 'flex';
+  renderStageBar();
+  renderCard();
+}
+document.getElementById('btnToggleContextos').addEventListener('click', () => {
+  state.view = state.view === 'contextos' ? 'proceso' : 'contextos';
+  render();
+});
+document.getElementById('btnToggleHistorial').addEventListener('click', () => {
+  state.view = state.view === 'historial' ? 'proceso' : 'historial';
+  render();
+});
+
+function renderStageBar() {
+  const bar = document.getElementById('stageBar');
+  bar.innerHTML = '';
+  state.stages.forEach((s, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'stage-dot';
+    if (i === state.currentStageIndex) dot.className += ' active';
+    else if (i <= state.maxStageReached && i < state.currentStageIndex) dot.className += ' done';
+    dot.textContent = `${i + 1}. ${state.stageLabels[s]}`;
+    if (i <= state.maxStageReached) dot.addEventListener('click', () => { state.currentStageIndex = i; render(); });
+    bar.appendChild(dot);
+  });
+}
+
+function renderCard() {
+  const stage = state.stages[state.currentStageIndex];
+  const container = document.getElementById('cardContent');
+  container.innerHTML = '';
+  if (stage === 'encuadre') renderEncuadre(container);
+  else if (stage === 'deconstruccion') renderDeconstruccion(container);
+  else if (stage === 'giro') renderGiro(container);
+  else if (stage === 'red') renderRed(container);
+  else if (stage === 'propuestas') renderPropuestasGeneradas(container);
+  else if (stage === 'evaluacion') renderEvaluacion(container);
+}
+
+function escapeHtml(str) { return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+/* =========================================================
+   7. ETAPA: ENCUADRE (100% diligenciado por el usuario)
+   ========================================================= */
+function renderEncuadre(container) {
+  const e = state.encuadre;
+  if (e.screen === 0) { renderEncuadrePantalla0(container, e); return; }
+  renderEncuadrePregunta(container, e);
+}
+
+const ICONO_REGALO = `<svg viewBox="0 0 32 32" fill="none" stroke="#c4b5fd" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="14" width="20" height="14" rx="1.5"/><path d="M6 14h20M16 14v14"/><path d="M11 14c-2-3-1-7 2-7 2 0 3 3 3 7"/><path d="M21 14c2-3 1-7-2-7-2 0-3 3-3 7"/></svg>`;
+const ICONO_EDIFICIO = `<svg viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V9l8-5 8 5v12"/><path d="M4 21h16"/><path d="M10 21v-6h4v6"/><path d="M8 12h.01M8 15.5h.01M16 12h.01M16 15.5h.01"/></svg>`;
+const ICONOS_PREGUNTA = {
+  usuario: `<svg viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c1.3-4.3 4.2-6.4 7-6.4s5.7 2.1 7 6.4"/></svg>`,
+  momento: `<svg viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.5v5l3.4 2"/></svg>`,
+  restriccion: `<svg viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2 19 6v6c0 4.6-3 7.6-7 8.8-4-1.2-7-4.2-7-8.8V6l7-2.8Z"/></svg>`
+};
+
+function renderEncuadrePantalla0(container, e) {
+  container.innerHTML = `
+    <div class="encuadre-hero-icon-wrap">${ICONO_REGALO}</div>
+    <h1>Encuadre</h1>
+    <div class="accent-line"></div>
+    <p class="subtitle">Punto de partida para diseñar un souvenir universitario con significado propio.</p>
+
+    <div class="campo-grupo">
+      <div class="campo-header">${ICONO_EDIFICIO}<label for="selContexto">Contexto</label></div>
+      <select id="selContexto"></select>
+      <div class="hint">¿No encuentras el contexto que necesitas? Agrégalo desde "Gestionar contextos", arriba.</div>
+    </div>
+
+    <div class="campo-grupo">
+      <div class="campo-header">${ICONO_REGALO}<label for="taReto">¿Qué tipo de souvenir quieres crear?</label></div>
+      <div class="hint">Ej. "un souvenir de bienvenida para estudiantes nuevos", "un souvenir de graduación", "un souvenir para egresados que visitan el campus".</div>
+      <textarea id="taReto" placeholder="Escribe aquí..."></textarea>
+    </div>
+
+    <div class="nav-row"><span class="spacer"></span><button class="btn-primary" id="btnSiguiente0" disabled>Siguiente</button></div>
+  `;
+  const sel = document.getElementById('selContexto');
+  function addGroup(label, items) {
+    if (items.length === 0) return;
+    const group = document.createElement('optgroup');
+    group.label = label;
+    items.forEach(c => { const opt = document.createElement('option'); opt.value = c.id; opt.textContent = c.nombre; group.appendChild(opt); });
+    sel.appendChild(group);
+  }
+  addGroup('Instituciones educativas', BASE_DATOS_CONTEXTOS.educacion);
+  addGroup('Empresas', BASE_DATOS_CONTEXTOS.empresas);
+  addGroup('Personalizados', contextosPersonalizados);
+  sel.value = e.contextoId;
+  sel.addEventListener('change', (ev) => { e.contextoId = ev.target.value; });
+
+  const taReto = document.getElementById('taReto');
+  taReto.value = e.reto;
+  const btn = document.getElementById('btnSiguiente0');
+  function validar0() { btn.disabled = e.reto.trim().length === 0; }
+  taReto.addEventListener('input', () => { e.reto = taReto.value; validar0(); });
+  btn.addEventListener('click', () => { if (!e.cola) e.cola = elegirGruposPreguntas(state); e.screen = 1; render(); });
+  validar0();
+}
+
+function renderEncuadrePregunta(container, e) {
+  const idx = e.screen - 1;
+  const grupo = e.cola[idx];
+  const esUltima = e.screen === e.cola.length;
+  container.innerHTML = `
+    <h1>Encuadre</h1>
+    <div class="sub-progress">Pregunta ${e.screen} de ${e.cola.length}</div>
+    ${grupo.map(key => `
+      <div class="pregunta-row">
+        <div class="pregunta-icon">${ICONOS_PREGUNTA[key]}</div>
+        <div class="question-text">${PREGUNTAS[key].texto(nombreContexto(e.contextoId))}</div>
+      </div>
+      <textarea id="taRespuesta_${key}" placeholder="Escribe tu respuesta..."></textarea>
+    `).join('')}
+    <div class="nav-row">
+      <button class="btn-secondary" id="btnAtras">Atrás</button>
+      <span class="spacer"></span>
+      <button class="btn-primary" id="btnSiguiente" disabled>${esUltima ? 'Continuar a Deconstrucción Sistémica' : 'Siguiente'}</button>
+    </div>
+  `;
+  const btnSig = document.getElementById('btnSiguiente');
+  function validar() {
+    btnSig.disabled = grupo.some(key => document.getElementById('taRespuesta_' + key).value.trim().length === 0);
+  }
+  grupo.forEach(key => {
+    const ta = document.getElementById('taRespuesta_' + key);
+    ta.value = e.huecos[key] || '';
+    ta.addEventListener('input', () => { e.huecos[key] = ta.value; validar(); });
+  });
+  document.getElementById('btnAtras').addEventListener('click', () => { e.screen -= 1; render(); });
+  btnSig.addEventListener('click', () => {
+    if (esUltima) { state.currentStageIndex = 1; state.maxStageReached = Math.max(state.maxStageReached, 1); }
+    else { e.screen += 1; }
+    render();
+  });
+  validar();
+}
+
+/* =========================================================
+   8. ETAPA: DECONSTRUCCIÓN — puramente analítica, sin soluciones
+   ========================================================= */
+function renderDeconstruccion(container) {
+  const d = state.deconstruccion;
+  if (esEAUD() && !d.seedApplied) {
+    Object.keys(SEED_DECONSTRUCCION_EAUD).forEach(k => { d.niveles[k] = [...SEED_DECONSTRUCCION_EAUD[k]]; });
+    d.seedApplied = true;
+  }
+  const niveles = ['objeto', 'servicio', 'sistema', 'cultura'];
+  container.innerHTML = `
+    <h1>Deconstrucción Sistémica</h1>
+    <p class="subtitle">Descompón el reto en sus componentes: registra qué elementos, relaciones y tensiones ya existen en cada nivel del sistema. Aquí no se proponen soluciones — solo se analiza lo que ya está.</p>
+    <div id="nivelesWrap">${niveles.map(n => renderNivelSection(n)).join('')}</div>
+    <div class="nav-row">
+      <button class="btn-secondary" id="btnAtras">Atrás</button>
+      <span class="spacer"></span>
+      <button class="btn-primary" id="btnSiguiente">Continuar a Giro Semántico</button>
+    </div>
+  `;
+  vincularEventosNiveles();
+  document.getElementById('btnAtras').addEventListener('click', irAEtapaAnterior);
+  document.getElementById('btnSiguiente').addEventListener('click', irASiguienteEtapa);
+}
+
+function renderNivelSection(nivelKey) {
+  const items = state.deconstruccion.niveles[nivelKey];
+  return `
+    <div class="nivel-section">
+      <div class="nivel-title">${NIVEL_LABEL[nivelKey]}</div>
+      <div class="item-list" id="lista_${nivelKey}">
+        ${items.length ? items.map((it, i) => `<span class="item-chip">${escapeHtml(it)}<button class="btn-remove-item" data-nivel="${nivelKey}" data-idx="${i}">✕</button></span>`).join('') : '<div class="hint">Aún no hay elementos registrados en este nivel.</div>'}
+      </div>
+      <div class="add-item-row">
+        <input type="text" id="input_${nivelKey}" placeholder="Agregar elemento...">
+        <button class="btn-secondary" data-nivel="${nivelKey}" id="btnAgregar_${nivelKey}">Agregar</button>
+      </div>
+    </div>
+  `;
+}
+
+function vincularEventosNiveles() {
+  ['objeto', 'servicio', 'sistema', 'cultura'].forEach(nivelKey => {
+    const input = document.getElementById(`input_${nivelKey}`);
+    const btn = document.getElementById(`btnAgregar_${nivelKey}`);
+    function agregar() {
+      const val = input.value.trim();
+      if (!val) return;
+      state.deconstruccion.niveles[nivelKey].push(val);
+      renderDeconstruccion(document.getElementById('cardContent'));
+    }
+    btn.addEventListener('click', agregar);
+    input.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); agregar(); } });
+  });
+  document.querySelectorAll('.btn-remove-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const nivelKey = btn.dataset.nivel;
+      const idx = parseInt(btn.dataset.idx, 10);
+      state.deconstruccion.niveles[nivelKey].splice(idx, 1);
+      renderDeconstruccion(document.getElementById('cardContent'));
+    });
+  });
+}
+
+/* =========================================================
+   9. ETAPA: GIRO SEMÁNTICO — solo significado, sin propuestas
+   ========================================================= */
+function generarGiroSugerido() {
+  const e = state.encuadre;
+  const contexto = nombreContexto(e.contextoId);
+  const usuario = e.huecos.usuario || 'tu usuario principal';
+  const momento = e.huecos.momento || 'el momento que definiste en el Encuadre';
+  return {
+    tradicional: `Un souvenir estándar para ${contexto}: un objeto con el logo institucional, sin conexión particular con ${usuario} ni con "${momento}".`,
+    significado: `Que ${usuario} recuerde "${momento}" no como un objeto más entre otros, sino como algo que representa de forma tangible su vínculo real con ${contexto}.`
+  };
+}
+
+// Arquetipos de significado: direcciones simbólicas posibles, NO soluciones ni objetos concretos.
+const ARQUETIPOS_SIGNIFICADO = [
+  { id: 'pertenencia', nombre: 'Pertenencia', frase: (u, m, c) => `Que ${u} sienta que "${m}" lo hace parte de algo más grande que él mismo dentro de ${c}.` },
+  { id: 'transformacion', nombre: 'Transformación personal', frase: (u, m, c) => `Que "${m}" quede marcado como el momento en que ${u} cambió su forma de ver ${c}.` },
+  { id: 'memoria', nombre: 'Memoria compartida', frase: (u, m, c) => `Que "${m}" se convierta en un recuerdo que ${u} pueda compartir con otras generaciones de ${c}.` },
+  { id: 'orgullo', nombre: 'Orgullo de comunidad', frase: (u, m, c) => `Que ${u} sienta orgullo genuino de haber vivido "${m}" dentro de ${c}.` },
+  { id: 'aprendizaje', nombre: 'Aprendizaje a través del error', frase: (u, m, c) => `Que "${m}" represente para ${u} lo que se aprende equivocándose dentro de ${c}.` },
+  { id: 'legado', nombre: 'Legado entre generaciones', frase: (u, m, c) => `Que "${m}" conecte a ${u} con quienes vivieron algo similar antes en ${c}, y con quienes lo vivirán después.` },
+  { id: 'territorio', nombre: 'Conexión con el territorio', frase: (u, m, c) => `Que "${m}" ancle a ${u} con el lugar y la cultura que rodean a ${c}.` },
+  { id: 'superacion', nombre: 'Superación de un reto', frase: (u, m, c) => `Que "${m}" quede como prueba de que ${u} logró algo que le costó dentro de ${c}.` }
+];
+
+function renderGiro(container) {
+  const g = state.giro;
+  const e = state.encuadre;
+  const contexto = nombreContexto(e.contextoId);
+  const usuario = e.huecos.usuario || 'tu usuario principal';
+  const momento = e.huecos.momento || 'el momento definido en el Encuadre';
+
+  if (!g.generado) {
+    const sug = generarGiroSugerido();
+    g.tradicional = sug.tradicional; g.significado = sug.significado; g.generado = true;
+  }
+
+  container.innerHTML = `
+    <h1>Giro Semántico</h1>
+    <p class="subtitle">Compara el enfoque tradicional con el nuevo significado que quieres construir.</p>
+
+    <div class="field-label">Solución tradicional</div>
+    <div class="tradicional-fija">${escapeHtml(g.tradicional)}</div>
+
+    <label>¿Qué dirección de significado buscas? (opcional, puedes elegir una o escribir la tuya)</label>
+    <div class="chip-row" id="chipsSignificado">
+      ${ARQUETIPOS_SIGNIFICADO.map(a => `<button type="button" class="chip-option ${g.arquetipoElegidoId === a.id ? 'selected' : ''}" data-id="${a.id}">${a.nombre}</button>`).join('')}
+    </div>
+
+    <span class="badge ${badgeClase(g.estadoSignificado)}" id="badge_signif">${badgeTexto(g.estadoSignificado)}</span>
+    <div class="field-label">Nuevo significado</div>
+    <textarea id="ta_signif">${escapeHtml(g.significado)}</textarea>
+
+    <div class="nav-row">
+      <button class="btn-secondary" id="btnAtras">Atrás</button>
+      <span class="spacer"></span>
+      <button class="btn-primary" id="btnSiguiente">Continuar a Red de Intérpretes</button>
+    </div>
+  `;
+
+  document.getElementById('ta_signif').addEventListener('input', (ev) => {
+    g.significado = ev.target.value; g.estadoSignificado = 'editado';
+    actualizarBadgeGiro('badge_signif', 'editado');
+  });
+  document.querySelectorAll('.chip-option').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const arq = ARQUETIPOS_SIGNIFICADO.find(a => a.id === chip.dataset.id);
+      g.arquetipoElegidoId = arq.id;
+      g.significado = arq.frase(usuario, momento, contexto);
+      g.estadoSignificado = 'banco';
+      render();
+    });
+  });
+
+  document.getElementById('btnAtras').addEventListener('click', irAEtapaAnterior);
+  document.getElementById('btnSiguiente').addEventListener('click', irASiguienteEtapa);
+}
+
+function badgeClase(estado) { return estado === 'editado' ? 'editado' : (estado === 'banco' ? 'banco' : 'sugerido'); }
+function badgeTexto(estado) {
+  if (estado === 'editado') return 'Editado por ti';
+  if (estado === 'banco') return 'Dirección de significado elegida';
+  return 'Respuesta posible — puedes editarla';
+}
+function actualizarBadgeGiro(id, estado) {
+  const badge = document.getElementById(id);
+  badge.className = 'badge ' + badgeClase(estado);
+  badge.textContent = badgeTexto(estado);
+}
+
+/* =========================================================
+   10. ETAPA: RED DE INTÉRPRETES — su botón final ahora genera propuestas
+   ========================================================= */
+function renderRed(container) {
+  const data = state.red;
+  if (!data.generado) {
+    const sug = generarSugerenciaRed();
+    data.campos.campo1 = sug.campo1; data.campos.campo2 = sug.campo2; data.generado = true;
+  }
+  container.innerHTML = `
+    <h1>Red de Intérpretes</h1>
+    <p class="subtitle">Considera otras miradas o voces que podrían enriquecer la propuesta.</p>
+    ${campoSugeridoGenerico('red', 'campo1', 'Otras perspectivas a considerar', data)}
+    ${campoSugeridoGenerico('red', 'campo2', 'Posibles tensiones o desacuerdos', data)}
+    <div class="nav-row">
+      <button class="btn-secondary" id="btnAtras">Atrás</button>
+      <span class="spacer"></span>
+      <button class="btn-primary" id="btnSiguiente">Generar propuestas</button>
+    </div>
+  `;
+  ['campo1', 'campo2'].forEach(key => {
+    const ta = document.getElementById(`ta_red_${key}`);
+    ta.addEventListener('input', () => {
+      data.campos[key] = ta.value; data.editado[key] = true;
+      const badge = document.getElementById(`badge_red_${key}`);
+      badge.className = 'badge editado'; badge.textContent = 'Editado por ti';
+    });
+  });
+  document.getElementById('btnAtras').addEventListener('click', irAEtapaAnterior);
+  document.getElementById('btnSiguiente').addEventListener('click', () => {
+    state.propuestasGeneradas.lista = generarPropuestasLocal();
+    state.propuestasGeneradas.generado = true;
+    state.propuestasGeneradas.seleccionadas = [];
+    state.evaluacion.scoresPorPropuesta = {};
+    state.evaluacion.mejorasAplicadas = {};
+    state.evaluacion.propuestaEnEvaluacionId = null;
+    state.evaluacion.propuestaElegidaId = null;
+    state.evaluacion.finalizado = false;
+    irASiguienteEtapa();
+  });
+}
+
+function campoSugeridoGenerico(stageKey, key, label, data) {
+  const editado = data.editado[key];
+  return `
+    <div class="suggestion-field">
+      <span class="badge ${editado ? 'editado' : 'sugerido'}" id="badge_${stageKey}_${key}">${editado ? 'Editado por ti' : 'Respuesta posible — puedes editarla'}</span>
+      <div class="field-label">${label}</div>
+      <textarea id="ta_${stageKey}_${key}">${escapeHtml(data.campos[key])}</textarea>
+    </div>
+  `;
+}
+
+/* =========================================================
+   11. GENERADOR DE PROPUESTAS (usa TODO lo recolectado hasta Red)
+   ========================================================= */
+const FORMATOS_PROPUESTA = [
+  { id: 'objeto', nombre: 'Objeto físico', articulo: 'un', perfil: { funcional: 1, experiencial: 1, simbolica: 1, social: 0, sistemica: 0, contextual: 1 } },
+  { id: 'servicio', nombre: 'Servicio o ritual', articulo: 'un', perfil: { funcional: 0, experiencial: 2, simbolica: 1, social: 1, sistemica: 1, contextual: 0 } },
+  { id: 'coleccion', nombre: 'Colección o serie', articulo: 'una', perfil: { funcional: 0, experiencial: 1, simbolica: 1, social: 1, sistemica: 1, contextual: 1 } },
+  { id: 'espacio', nombre: 'Intervención espacial', articulo: 'una', perfil: { funcional: 0, experiencial: 1, simbolica: 1, social: 1, sistemica: 2, contextual: 2 } },
+  { id: 'digital', nombre: 'Experiencia digital o archivo', articulo: 'una', perfil: { funcional: 1, experiencial: 1, simbolica: 0, social: 1, sistemica: 1, contextual: 0 } },
+  { id: 'evento', nombre: 'Evento o encuentro', articulo: 'un', perfil: { funcional: 0, experiencial: 2, simbolica: 0, social: 2, sistemica: 1, contextual: 1 } }
+];
+
+// Ficha técnica concreta por formato: qué forma toma, de qué material,
+// a través de qué interfaz se interactúa con ella, y un detalle distintivo.
+// Esto es lo que evita que "objeto físico" se quede en una idea abstracta.
+const FORMATO_ESPECIFICACIONES = {
+  objeto: {
+    formas: ['una pieza modular que se ensambla en varias partes', 'un objeto de bolsillo que cabe en la palma de la mano', 'una pieza pensada para exhibirse en una pared o repisa', 'un contenedor que se abre por capas o compartimentos', 'una pieza plana que se dobla o se despliega'],
+    materiales: ['cerámica o arcilla trabajada a mano', 'madera reciclada de los propios talleres', 'textil bordado o tejido', 'metal o acrílico cortado con láser', 'papel o cartón troquelado'],
+    interfaces: ['se manipula físicamente con las manos, sin pantallas de por medio', 'incluye un código QR que conecta con contenido digital adicional', 'trae una tarjeta o etiqueta impresa con instrucciones', 'se activa insertando, girando o encajando una pieza'],
+    detalles: ['tiene un número de serie o identificador único', 'incluye un espacio en blanco para personalizarlo a mano', 'cambia de aspecto con el uso o con el paso del tiempo', 'se puede desarmar y volver a armar de distintas formas']
+  },
+  servicio: {
+    formas: ['un ritual breve de entrega cara a cara', 'un proceso de varias etapas repartidas en el tiempo', 'un acompañamiento personalizado de principio a fin', 'una ceremonia grupal con un guion definido de antemano'],
+    materiales: ['se apoya en objetos físicos simples como soporte', 'no requiere materiales: la interacción entre personas es el centro', 'usa un espacio específico ya existente dentro del contexto', 'se apoya en un documento o formato que se va llenando'],
+    interfaces: ['interacción cara a cara, sin intermediarios digitales', 'se coordina a través de un chat, correo o formulario simple', 'combina un momento presencial con un seguimiento digital', 'se activa con una señal o gesto acordado de antemano'],
+    detalles: ['tiene una duración definida de principio a fin', 'involucra a más de una persona en roles distintos', 'deja un registro o recuerdo físico al finalizar', 'se puede repetir en distintos momentos del año']
+  },
+  coleccion: {
+    formas: ['una serie numerada de piezas relacionadas entre sí', 'un conjunto que se va completando con el tiempo', 'una colección de tarjetas o fichas coleccionables', 'un set de objetos pequeños que se guardan juntos'],
+    materiales: ['cada pieza en un material distinto según su categoría', 'papel o cartón impreso en distintos colores', 'pequeñas piezas de cerámica o resina', 'textil con variaciones de color o patrón'],
+    interfaces: ['se intercambian o coleccionan físicamente entre personas', 'cada pieza trae un código que se registra en una app o web simple', 'se exhiben juntas en un soporte, álbum o vitrina física', 'se desbloquean por etapas conforme se avanza en algo'],
+    detalles: ['no todas las piezas están disponibles al mismo tiempo', 'algunas piezas son más difíciles de conseguir que otras', 'juntas cuentan una historia o forman una imagen completa', 'cada persona solo puede tener una versión distinta a la vez']
+  },
+  espacio: {
+    formas: ['una instalación temporal en un punto de paso frecuente', 'una intervención permanente en un muro o superficie existente', 'un rincón señalizado dentro de un espacio ya existente', 'una estructura desmontable que se puede mover de lugar'],
+    materiales: ['materiales reciclados o reutilizados del propio lugar', 'señalética impresa o pintada directamente sobre la superficie', 'estructuras ligeras de madera o metal', 'luz o proyección, sin materiales físicos permanentes'],
+    interfaces: ['se recorre físicamente, sin ninguna pantalla de por medio', 'incluye elementos táctiles pensados para tocarse', 'combina señalética física con contenido accesible por QR', 'responde a la presencia de las personas con sensores simples'],
+    detalles: ['cambia según la época del año o el calendario académico', 'invita a dejar una marca o un aporte físico propio', 'conecta visualmente dos espacios que antes no se relacionaban', 'es visible incluso para quien no participa directamente']
+  },
+  digital: {
+    formas: ['una página o aplicación web simple, sin instalación', 'un archivo o documento vivo que se va actualizando', 'un contenido audiovisual corto pensado para compartirse', 'una base de datos o mapa interactivo navegable'],
+    materiales: ['no requiere materiales físicos, solo un dispositivo con navegador', 'se combina con una etiqueta física que da acceso (QR o similar)', 'usa fotografías o grabaciones aportadas por la propia comunidad'],
+    interfaces: ['se accede desde el celular escaneando un código', 'es una página web que se comparte por enlace directo', 'funciona como un chat o formulario conversacional simple', 'se navega como un mapa o una línea de tiempo interactiva'],
+    detalles: ['se actualiza con nuevos aportes de la comunidad con el tiempo', 'funciona sin conexión una vez cargado por primera vez', 'permite buscar o filtrar el contenido por categorías', 'guarda un historial visible de quién ha participado']
+  },
+  evento: {
+    formas: ['un encuentro puntual de pocas horas de duración', 'una celebración recurrente en una fecha fija del año', 'una serie de encuentros pequeños en distintos momentos', 'un evento sorpresa sin fecha anunciada de antemano'],
+    materiales: ['se apoya en elementos físicos sencillos de montar', 'no requiere producción, solo convocatoria y espacio', 'incluye materiales para que los asistentes se lleven algo consigo'],
+    interfaces: ['convocatoria y participación completamente presencial', 'se organiza y confirma a través de un grupo o chat', 'combina un momento presencial con contenido grabado después', 'usa una lista o código de acceso para poder participar'],
+    detalles: ['tiene un cupo limitado de participantes', 'involucra a distintas generaciones en un mismo momento', 'deja un registro fotográfico o documental del encuentro', 'se repite cada cierto tiempo con variaciones']
+  }
+};
+
+function elegirEspecificaciones(formatoId, fi, k) {
+  const banco = FORMATO_ESPECIFICACIONES[formatoId];
+  return {
+    forma: banco.formas[k % banco.formas.length],
+    material: banco.materiales[(fi + k) % banco.materiales.length],
+    interfaz: banco.interfaces[(fi + k * 2) % banco.interfaces.length],
+    detalle: banco.detalles[(fi * 3 + k) % banco.detalles.length]
+  };
+}
+
+// Cada mecanismo trae varias variantes de redacción (no una sola frase fija),
+// para que propuestas con el mismo mecanismo no se lean idénticas entre sí.
+const MECANISMOS_INNOVACION = [
+  { id: 'colectivo', nombreCorto: 'Construcción colectiva',
+    variantes: [
+      'se construye de forma colectiva entre varias personas, en lugar de entregarse ya terminada',
+      'necesita la participación de más de una persona para completarse',
+      'convierte a quienes la reciben en coautores de la pieza final'
+    ],
+    perfil: { funcional: 0, experiencial: 1, simbolica: 0, social: 2, sistemica: 1, contextual: 0 } },
+  { id: 'diferido', nombreCorto: 'Activación diferida',
+    variantes: [
+      'se activa o se completa en un momento distinto al de la entrega inicial, generando anticipación',
+      'guarda una parte de sí misma para revelarse más adelante en el tiempo',
+      'separa el momento de recibirla del momento de vivirla realmente'
+    ],
+    perfil: { funcional: 0, experiencial: 2, simbolica: 1, social: 0, sistemica: 0, contextual: 0 } },
+  { id: 'invertido', nombreCorto: 'Rol invertido',
+    variantes: [
+      'invierte el rol tradicional: quien la recibe se convierte también en quien la crea',
+      'le pide a quien la recibe que también construya, no solo que reciba',
+      'cambia de lugar a quien diseña y a quien usa'
+    ],
+    perfil: { funcional: 0, experiencial: 1, simbolica: 1, social: 1, sistemica: 1, contextual: 0 } },
+  { id: 'evolutivo', nombreCorto: 'Crecimiento en el tiempo',
+    variantes: [
+      'cambia o crece con el tiempo en lugar de quedar fija desde el primer momento',
+      'está pensada para transformarse con cada uso o con cada generación que pasa por ahí',
+      'nunca queda terminada del todo: sigue creciendo después de entregarse'
+    ],
+    perfil: { funcional: 0, experiencial: 1, simbolica: 1, social: 0, sistemica: 2, contextual: 0 } },
+  { id: 'conector', nombreCorto: 'Puente entre generaciones',
+    variantes: [
+      'conecta explícitamente a distintas generaciones o grupos entre sí',
+      'sirve de puente entre quienes ya vivieron esto y quienes recién empiezan',
+      'solo tiene sentido completo cuando participa más de una generación'
+    ],
+    perfil: { funcional: 0, experiencial: 0, simbolica: 1, social: 2, sistemica: 2, contextual: 1 } },
+  { id: 'oculto', nombreCorto: 'Revelación progresiva',
+    variantes: [
+      'revela información o significado solo bajo ciertas condiciones, en lugar de mostrarlo todo de inmediato',
+      'esconde una capa de significado que solo aparece si alguien la busca',
+      'se entiende del todo solo después de vivir la experiencia completa, no antes'
+    ],
+    perfil: { funcional: 0, experiencial: 1, simbolica: 2, social: 0, sistemica: 0, contextual: 0 } }
+];
+
+// Detección simple de tono a partir de palabras clave en las respuestas del usuario:
+// si el vocabulario que ya escribió apunta hacia sostenibilidad, tecnología, comunidad,
+// tradición, arte o bienestar, la descripción de la propuesta lo refleja.
+const TONOS_POR_PALABRA_CLAVE = [
+  { palabras: ['sosten', 'ecológic', 'ecologic', 'ambiental', 'reciclad'], clausula: 'cuidando los materiales que usa y su impacto ambiental' },
+  { palabras: ['digital', 'tecnolog', 'app', 'virtual', 'online'], clausula: 'apoyándose en herramientas digitales como parte de la experiencia' },
+  { palabras: ['comunidad', 'colectiv', 'junt', 'grupo'], clausula: 'reforzando el sentido de comunidad que ya aparece en tus respuestas' },
+  { palabras: ['tradici', 'herencia', 'ancestral', 'histori'], clausula: 'dialogando con la tradición y la memoria del lugar' },
+  { palabras: ['arte', 'artístic', 'artistic', 'creativ', 'diseñ'], clausula: 'apoyándose en un lenguaje visual y creativo propio' },
+  { palabras: ['bienestar', 'salud', 'cuidad', 'mental'], clausula: 'poniendo el bienestar de las personas en el centro' }
+];
+
+function detectarTonos(texto) {
+  const t = texto.toLowerCase();
+  return TONOS_POR_PALABRA_CLAVE.filter(tono => tono.palabras.some(p => t.includes(p))).map(tono => tono.clausula);
+}
+
+function calcularPerfilInnovacion(formato, mecanismo) {
+  const resultado = {};
+  DIMENSIONES_INNOVACION.forEach(d => {
+    const base = formato.perfil[d.key] || 0;
+    const delta = mecanismo.perfil[d.key] || 0;
+    resultado[d.key] = Math.min(3, base + delta);
+  });
+  return resultado;
+}
+
+// Detalle concreto: lo que realmente hace tangible cada mecanismo, ya aplicado
+// al formato específico. Es lo que evita que la propuesta se sienta como una
+// repetición del reto con otras palabras — aquí se dice qué pasa en la práctica.
+const EJEMPLO_CONCRETO_POR_MECANISMO = {
+  colectivo: (formato) => `Por ejemplo, cada persona involucrada aporta una parte física o simbólica hasta completar ${formato.articulo} ${formato.nombre.toLowerCase()}.`,
+  diferido: (formato) => `Por ejemplo, una primera parte se entrega de inmediato y el resto de ${formato.articulo} ${formato.nombre.toLowerCase()} se revela semanas o meses después.`,
+  invertido: (formato) => `Por ejemplo, quien lo recibe termina de definir cómo se ve o cómo funciona ${formato.articulo} ${formato.nombre.toLowerCase()} final.`,
+  evolutivo: (formato) => `Por ejemplo, ${formato.articulo} ${formato.nombre.toLowerCase()} inicial es solo la primera versión: cada encuentro o cada generación le añade algo nuevo.`,
+  conector: (formato) => `Por ejemplo, una parte de ${formato.articulo} ${formato.nombre.toLowerCase()} la aporta alguien de una generación anterior, y otra parte alguien de la generación actual.`,
+  oculto: (formato) => `Por ejemplo, ${formato.articulo} ${formato.nombre.toLowerCase()} esconde un mensaje o un detalle que solo se descubre si alguien lo busca con atención.`
+};
+
+// Tres plantillas de redacción distintas. Todas abren con una definición
+// concreta (forma, material, interfaz) para que nunca quede en abstracto qué
+// es literalmente el objeto/servicio. Luego cada una cita SOLO una parte del
+// contexto (significado, o tensión, o restricción) para no sonar repetidas.
+function redactarDescripcion(esqueleto, formato, mecanismo, mecanismoFrase, anclaje, significado, tension, usuario, restriccion, clausulaTono, espec) {
+  const extra = clausulaTono ? ` Además, ${clausulaTono}.` : '';
+  const ejemplo = EJEMPLO_CONCRETO_POR_MECANISMO[mecanismo.id](formato);
+  const definicion = `Es ${espec.forma}, hecha en ${espec.material}. Se interactúa con ella así: ${espec.interfaz}.`;
+  if (esqueleto === 0) {
+    return `${definicion} Además, esta propuesta ${mecanismoFrase}. ${ejemplo} Traduce el significado de "${significado}" para ${usuario}.${extra}`;
+  }
+  if (esqueleto === 1) {
+    return `${definicion} Partiendo de ${anclaje}, su giro es que ${mecanismoFrase}. ${ejemplo} Responde directamente a la tensión detectada en Red de Intérpretes: "${tension}".${extra}`;
+  }
+  return `${definicion} Pensada para ${usuario}, esta propuesta ${mecanismoFrase}. ${ejemplo} Debe respetar "${restriccion}" para ser viable.${extra}`;
+}
+
+function capitalizar(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+/* =========================================================
+   HISTORIAL — guarda fichas de propuestas entre sesiones en el
+   mismo navegador (localStorage), con respaldo en memoria si el
+   navegador lo bloquea. La memoria del historial también influye
+   levemente en cómo se generan las próximas propuestas.
+   ========================================================= */
+const HISTORIAL_KEY = 'eaud_ideacion_historial_v1';
+let historialMemoriaFallback = [];
+
+function leerHistorial() {
+  try {
+    const raw = localStorage.getItem(HISTORIAL_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (err) {
+    return historialMemoriaFallback;
+  }
+}
+
+function guardarEnHistorial(registro) {
+  try {
+    const actual = leerHistorial();
+    actual.unshift(registro);
+    localStorage.setItem(HISTORIAL_KEY, JSON.stringify(actual.slice(0, 30)));
+  } catch (err) {
+    historialMemoriaFallback.unshift(registro);
+    historialMemoriaFallback = historialMemoriaFallback.slice(0, 30);
+  }
+}
+
+function eliminarDeHistorial(timestamp) {
+  try {
+    const actual = leerHistorial().filter(h => h.timestamp !== timestamp);
+    localStorage.setItem(HISTORIAL_KEY, JSON.stringify(actual));
+  } catch (err) {
+    historialMemoriaFallback = historialMemoriaFallback.filter(h => h.timestamp !== timestamp);
+  }
+}
+
+function descargarTexto(nombreArchivo, contenido) {
+  const blob = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = nombreArchivo;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function generarPropuestasLocal() {
+  const e = state.encuadre;
+  const contexto = nombreContexto(e.contextoId);
+  const usuario = e.huecos.usuario || 'tu usuario principal';
+  const restriccion = e.huecos.restriccion || 'la restricción definida en el Encuadre';
+  const significado = state.giro.significado || 'el significado definido en el Giro Semántico';
+  const tension = state.red.campos.campo2 || 'una posible tensión con la restricción definida';
+  const elementos = Object.values(state.deconstruccion.niveles).flat();
+
+  let anclajes = [...elementos, `el reto "${e.reto || 'planteado en el Encuadre'}"`, `la relación entre ${usuario} y ${contexto}`];
+  anclajes = [...new Set(anclajes)];
+  if (anclajes.length === 0) anclajes = [contexto];
+
+  const textoParaTono = [e.reto, significado, restriccion, tension, elementos.join(' ')].join(' ');
+  const tonosDetectados = detectarTonos(textoParaTono);
+
+  // La memoria del historial desplaza el punto de partida de la combinatoria,
+  // para que sesiones sucesivas no siempre generen exactamente lo mismo.
+  const desfaseHistorial = leerHistorial().length % MECANISMOS_INNOVACION.length;
+
+  const lista = [];
+  FORMATOS_PROPUESTA.forEach((formato, fi) => {
+    for (let k = 0; k < 3; k++) {
+      const mecanismo = MECANISMOS_INNOVACION[(fi + k + desfaseHistorial) % MECANISMOS_INNOVACION.length];
+      const anclaje = anclajes[(fi * 3 + k) % anclajes.length];
+      const mecanismoFrase = mecanismo.variantes[k % mecanismo.variantes.length];
+      const esqueleto = (fi + k) % 3;
+      const clausulaTono = tonosDetectados.length ? tonosDetectados[(fi * 3 + k) % tonosDetectados.length] : null;
+      const espec = elegirEspecificaciones(formato.id, fi, k);
+      const scores = calcularPerfilInnovacion(formato, mecanismo);
+      const nombresPorEsqueleto = [
+        `${mecanismo.nombreCorto}: ${formato.nombre.toLowerCase()}`,
+        `${formato.nombre} con ${mecanismo.nombreCorto.toLowerCase()}`,
+        `${formato.nombre} para ${usuario}`
+      ];
+      const nombre = nombresPorEsqueleto[esqueleto];
+      lista.push({
+        id: `local_${fi}_${k}`,
+        nombre,
+        formato: formato.nombre,
+        formatoId: formato.id,
+        mecanismo: mecanismo.nombreCorto,
+        mecanismoId: mecanismo.id,
+        especificaciones: espec,
+        descripcion: redactarDescripcion(esqueleto, formato, mecanismo, mecanismoFrase, anclaje, significado, tension, usuario, restriccion, clausulaTono, espec),
+        diferenciador: esDiferenciadorFrenteACompetencia({ formatoId: formato.id, mecanismoId: mecanismo.id }),
+        scores
+      });
+    }
+  });
+  return lista; // 6 formatos × 3 = 18 propuestas, siempre ≥ 15
+}
+
+/* Pictogramas simples como guía visual por formato (sin conexión a internet) */
+const ICONOS_FORMATO = {
+  objeto: `<svg viewBox="0 0 48 48" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="20" width="28" height="18" rx="2"/><line x1="10" y1="28" x2="38" y2="28"/><line x1="24" y1="20" x2="24" y2="38"/><path d="M16 20 C16 12 20 8 24 12 C28 8 32 12 32 20"/></svg>`,
+  servicio: `<svg viewBox="0 0 48 48" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="24" r="10"/><circle cx="30" cy="24" r="10"/></svg>`,
+  coleccion: `<svg viewBox="0 0 48 48" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="13" width="22" height="16" rx="2"/><rect x="17" y="20" width="22" height="16" rx="2"/></svg>`,
+  espacio: `<svg viewBox="0 0 48 48" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 24 L24 11 L39 24"/><rect x="13" y="24" width="22" height="14"/></svg>`,
+  digital: `<svg viewBox="0 0 48 48" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="11" width="30" height="20" rx="2"/><circle cx="18" cy="21" r="1.6" fill="#c4b5fd" stroke="none"/><circle cx="24" cy="21" r="1.6" fill="#c4b5fd" stroke="none"/><circle cx="30" cy="21" r="1.6" fill="#c4b5fd" stroke="none"/><line x1="18" y1="37" x2="30" y2="37"/></svg>`,
+  evento: `<svg viewBox="0 0 48 48" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="13" width="30" height="24" rx="2"/><line x1="9" y1="21" x2="39" y2="21"/><line x1="16" y1="9" x2="16" y2="15"/><line x1="32" y1="9" x2="32" y2="15"/></svg>`
+};
+
+/* =========================================================
+   12. ETAPA: PROPUESTAS GENERADAS (nueva etapa, entre Red y Evaluación)
+   ========================================================= */
+function renderPropuestasGeneradas(container) {
+  const p = state.propuestasGeneradas;
+
+  if (!p.generado) {
+    container.innerHTML = `
+      <h1>Propuestas Generadas</h1>
+      <p class="subtitle">Aún no se han generado propuestas para este recorrido.</p>
+      <div class="nav-row"><span class="spacer"></span><button class="btn-primary" id="btnGenerarAqui">Generar propuestas</button></div>
+    `;
+    document.getElementById('btnGenerarAqui').addEventListener('click', () => {
+      p.lista = generarPropuestasLocal();
+      p.generado = true;
+      p.seleccionadas = [];
+      p.mostrarDiferenciacion = false;
+      render();
+    });
+    return;
+  }
+
+  const puedeContinuar = p.seleccionadas.length >= 1;
+  const historial = leerHistorial();
+  container.innerHTML = `
+    <h1>Propuestas Generadas</h1>
+    <p class="subtitle">A partir de tu Encuadre, tu Deconstrucción, el significado del Giro Semántico y las tensiones de la Red de Intérpretes, el sistema generó ${p.lista.length} propuestas distintas.</p>
+    <div class="banco-note">Cada propuesta combina un formato y un mecanismo de innovación con un anclaje real tomado de tus respuestas; el vocabulario también se ajusta si detecta temas como sostenibilidad, tecnología, comunidad, tradición, arte o bienestar en lo que escribiste. Los íconos son pictogramas de guía por formato, no fotografías del producto final.${historial.length ? ` Se tuvo en cuenta tu historial de ${historial.length} propuesta(s) guardada(s) antes para variar esta generación.` : ''}</div>
+    <button class="btn-link" id="btnToggleDiferenciacion">${p.mostrarDiferenciacion ? '— Ocultar análisis de diferenciación' : '🔍 Ver análisis de diferenciación frente a otras universidades'}</button>
+    <div id="panelDiferenciacion"></div>
+    <label style="margin-bottom:4px; margin-top:14px;">Toca las propuestas que más te llamen la atención <span class="required-mark">(hasta 5)</span></label>
+    <div class="hint" id="contadorSeleccion">${p.seleccionadas.length} de 5 seleccionadas</div>
+    <div id="galeriaPropuestas">${p.lista.map(item => renderTarjetaPropuestaCompleta(item, p.seleccionadas)).join('')}</div>
+    <div class="nav-row">
+      <button class="btn-secondary" id="btnAtras">Atrás</button>
+      <span class="spacer"></span>
+      <button class="btn-primary" id="btnSiguiente" ${puedeContinuar ? '' : 'disabled'}>Comparar y continuar a Evaluación</button>
+    </div>
+  `;
+  if (p.mostrarDiferenciacion) renderPanelDiferenciacion();
+  document.getElementById('btnToggleDiferenciacion').addEventListener('click', () => {
+    p.mostrarDiferenciacion = !p.mostrarDiferenciacion;
+    render();
+  });
+  document.querySelectorAll('.propuesta-full-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const id = card.dataset.id;
+      const idx = p.seleccionadas.indexOf(id);
+      if (idx >= 0) {
+        p.seleccionadas.splice(idx, 1);
+      } else {
+        if (p.seleccionadas.length >= 5) {
+          const contador = document.getElementById('contadorSeleccion');
+          contador.textContent = 'Ya elegiste 5. Quita una para poder elegir otra.';
+          contador.style.color = 'var(--gold)';
+          return;
+        }
+        p.seleccionadas.push(id);
+      }
+      renderPropuestasGeneradas(container);
+    });
+  });
+  document.getElementById('btnAtras').addEventListener('click', irAEtapaAnterior);
+  document.getElementById('btnSiguiente').addEventListener('click', () => {
+    autoCompararYElegir();
+    irASiguienteEtapa();
+  });
+}
+
+function renderPanelDiferenciacion() {
+  const wrap = document.getElementById('panelDiferenciacion');
+  const competidores = obtenerCompetidores();
+  wrap.innerHTML = `
+    <div class="banco-note" style="font-style:normal;">
+      <strong>Lo que ya existe en otras universidades (según los documentos del proyecto):</strong>
+      <ul style="margin:8px 0 0 18px; padding:0;">
+        ${competidores.map(c => `<li style="margin-bottom:6px;"><strong>${escapeHtml(c.nombre)}:</strong> ${escapeHtml(c.resumen || 'sin descripción registrada')}</li>`).join('')}
+      </ul>
+      <p style="margin-top:8px;">Como ninguna tiene una línea de souvenirs de diseño realmente distintiva, cualquier propuesta que no sea solo "un objeto físico genérico" ya representa una diferencia real. Las tarjetas marcadas con 🏆 abajo cumplen ese criterio.</p>
+    </div>
+  `;
+}
+
+function renderTarjetaPropuestaCompleta(p, seleccionadas) {
+  const elegida = seleccionadas && seleccionadas.includes(p.id);
+  return `
+    <div class="propuesta-full-card ${elegida ? 'seleccionada' : ''}" data-id="${p.id}">
+      <div class="propuesta-icon">${ICONOS_FORMATO[p.formatoId] || ''}</div>
+      <div class="propuesta-full-body">
+        <div class="propuesta-full-nombre">${escapeHtml(p.nombre)} ${p.diferenciador ? '<span class="badge-diferenciador">🏆 Diferenciador</span>' : ''} ${elegida ? '<span class="check-elegida">✓ Elegida</span>' : ''}</div>
+        <div class="propuesta-full-tags"><span class="tag-formato">${escapeHtml(p.formato)}</span><span class="tag-mecanismo">${escapeHtml(p.mecanismo)}</span></div>
+        <div class="propuesta-full-desc">${escapeHtml(p.descripcion)}</div>
+        <div class="propuesta-ficha">Detalle distintivo: ${escapeHtml(p.especificaciones.detalle)}.</div>
+      </div>
+    </div>
+  `;
+}
+
+/* =========================================================
+   13. ETAPA: EVALUACIÓN — diagnóstico por propuesta + elección para profundizar
+   ========================================================= */
+const DIMENSIONES_INNOVACION = [
+  { key: 'funcional', label: 'Funcional', desc: 'Qué tan distinto es el desempeño o la utilidad frente a lo ya existente.' },
+  { key: 'experiencial', label: 'Experiencial', desc: 'Qué tan distinta es la experiencia de uso o interacción.' },
+  { key: 'simbolica', label: 'Simbólica', desc: 'Qué tan nuevo es el significado o mensaje que comunica.' },
+  { key: 'social', label: 'Social', desc: 'Qué tanto transforma relaciones entre personas o comunidades.' },
+  { key: 'sistemica', label: 'Sistémica', desc: 'Qué tanto conecta o transforma otros elementos del sistema, no solo el objeto.' },
+  { key: 'contextual', label: 'Contextual', desc: 'Qué tan anclada está en el contexto específico frente a algo replicable en cualquier lugar.' }
+];
+const NIVELES_INNOVACION = ['Convencional', 'Incremental', 'Significativa', 'Radical'];
+const COLORES_INTENSIDAD = ['#3b3357', '#6d5aa8', '#a78bfa', '#c4b5fd'];
+
+function clasificarNivel(promedio) {
+  if (promedio < 0.75) return 'Convencional';
+  if (promedio < 1.5) return 'Incremental';
+  if (promedio < 2.25) return 'Significativa';
+  return 'Radical';
+}
+function promedioScores(scores) {
+  const valores = DIMENSIONES_INNOVACION.map(d => scores[d.key]);
+  return valores.reduce((a, b) => a + b, 0) / valores.length;
+}
+function dimensionMasFuerte(scores) {
+  const maxVal = Math.max(...DIMENSIONES_INNOVACION.map(d => scores[d.key]));
+  return DIMENSIONES_INNOVACION.find(d => scores[d.key] === maxVal).label;
+}
+
+/* ---------- Mejoras sugeridas según la falencia (dimensión más débil) ---------- */
+const MEJORAS_POR_DIMENSION = {
+  funcional: 'Reforzar la funcionalidad agregando un uso práctico adicional además del simbólico (por ejemplo, que además sirva como organizador, contenedor o herramienta cotidiana).',
+  experiencial: 'Hacer la experiencia de uso más memorable agregando un momento de sorpresa o un ritual de activación (por ejemplo, que se entregue en dos partes separadas en el tiempo).',
+  simbolica: 'Reforzar el significado agregando un elemento simbólico explícito: un mensaje oculto, un símbolo distintivo, o una narrativa que se revele con el uso.',
+  social: 'Hacerla más social agregando un componente colectivo o de intercambio entre personas, en lugar de que sea una experiencia completamente individual.',
+  sistemica: 'Conectarla con otros elementos del sistema (otros programas, generaciones o espacios) para que no sea un objeto aislado.',
+  contextual: 'Anclarla más específicamente al contexto: usar materiales, lenguaje o referencias que solo tengan sentido en este lugar concreto, no en cualquier universidad.'
+};
+
+function obtenerMejorasDisponibles(scores) {
+  return DIMENSIONES_INNOVACION.filter(d => scores[d.key] < 3);
+}
+
+// El sistema compara automáticamente las propuestas seleccionadas y
+// preselecciona la de mayor promedio de innovación. El usuario puede
+// aceptar esa recomendación o elegir manualmente otra desde Evaluación.
+function autoCompararYElegir() {
+  const data = state.evaluacion;
+  const seleccionadas = state.propuestasGeneradas.lista.filter(p => state.propuestasGeneradas.seleccionadas.includes(p.id));
+  seleccionadas.forEach(p => {
+    if (!data.scoresPorPropuesta[p.id]) data.scoresPorPropuesta[p.id] = { ...p.scores };
+  });
+  let mejor = null;
+  let mejorPromedio = -1;
+  seleccionadas.forEach(p => {
+    const prom = promedioScores(data.scoresPorPropuesta[p.id]);
+    if (prom > mejorPromedio) { mejorPromedio = prom; mejor = p; }
+  });
+  if (mejor) {
+    data.propuestaElegidaId = mejor.id;
+    data.propuestaEnEvaluacionId = mejor.id;
+    data.elegidaAutomaticamente = true;
+  }
+}
+
+function generarDiagnostico(scores) {
+  const valores = DIMENSIONES_INNOVACION.map(d => scores[d.key]);
+  const promedio = valores.reduce((a, b) => a + b, 0) / valores.length;
+  const nivelGeneral = clasificarNivel(promedio);
+  const maxVal = Math.max(...valores);
+  const minVal = Math.min(...valores);
+  if (maxVal === minVal) {
+    return `Todas las dimensiones están en el mismo nivel (<strong>${nivelGeneral}</strong>). Vale la pena profundizar deliberadamente en alguna de ellas para que la propuesta se diferencie con más claridad.`;
+  }
+  const fuerte = DIMENSIONES_INNOVACION.find(d => scores[d.key] === maxVal);
+  const debil = DIMENSIONES_INNOVACION.find(d => scores[d.key] === minVal);
+  return `Este es el diagnóstico del sistema para esta propuesta: en promedio se ubica en un nivel <strong>${nivelGeneral}</strong> de innovación. Su dimensión más fuerte es <strong>${fuerte.label}</strong>. La dimensión con más espacio para crecer es <strong>${debil.label}</strong>: ${debil.desc.toLowerCase()} Puedes ajustar los deslizadores si no estás de acuerdo con alguna calificación.`;
+}
+
+/* ---------- Horizonte de innovación (Matriz H1/H2/H3) ----------
+   Eje "solución/tecnología": qué tan poco convencional es la forma de resolverlo
+   (funcional + experiencial + simbólica). Eje "mercado/necesidad": qué tan
+   fuera de lo ya atendido está el público y el sistema al que le habla
+   (social + sistémica + contextual). Cruce de ambos ejes = horizonte. */
+function clasificarEje(valor) {
+  if (valor < 1.25) return 'bajo';
+  if (valor < 2) return 'medio';
+  return 'alto';
+}
+
+function calcularHorizonte(scores) {
+  const ejeSolucion = (scores.funcional + scores.experiencial + scores.simbolica) / 3;
+  const ejeMercado = (scores.social + scores.sistemica + scores.contextual) / 3;
+  const nivelSolucion = clasificarEje(ejeSolucion);
+  const nivelMercado = clasificarEje(ejeMercado);
+  let horizonte, nombre, explicacion;
+  if (nivelSolucion === 'bajo' && nivelMercado === 'bajo') {
+    horizonte = 'H1';
+    nombre = 'Horizonte 1 — riesgo bajo';
+    explicacion = 'se mueve dentro de un mercado y una forma de resolverlo ya conocidos: es más una mejora o variante sobre lo que ya existe que una categoría nueva';
+  } else if (nivelSolucion === 'alto' && nivelMercado === 'alto') {
+    horizonte = 'H3';
+    nombre = 'Horizonte 3 — riesgo alto / alta incertidumbre';
+    explicacion = 'explora un público poco atendido con una forma de resolverlo poco convencional: es la de mayor potencial de diferenciación, pero también la de mayor riesgo de que el público no sepa cómo recibirla';
+  } else {
+    horizonte = 'H2';
+    nombre = 'Horizonte 2 — riesgo moderado';
+    explicacion = 'se expande hacia territorio menos conocido en al menos una dimensión (el público al que le habla o la forma de resolverlo), sin llegar a ser una categoría completamente nueva';
+  }
+  return { horizonte, nombre, explicacion, nivelSolucion, nivelMercado, ejeSolucion, ejeMercado };
+}
+
+function generarDiagnosticoHorizonte(scores) {
+  const h = calcularHorizonte(scores);
+  const contexto = nombreContexto(state.encuadre.contextoId);
+  const tradicional = state.giro.tradicional || 'un souvenir genérico con el logo institucional';
+  return `<strong>${h.nombre}</strong>. Frente al mercado actual de ${escapeHtml(contexto)} —hoy dominado por algo como "${escapeHtml(tradicional)}"— esta propuesta ${h.explicacion}. Novedad del público/mercado al que le habla: <strong>${h.nivelMercado}</strong>. Novedad de la forma de resolverlo (tecnología/proceso): <strong>${h.nivelSolucion}</strong>.`;
+}
+
+
+
+function generarRadarSVG(scores) {
+  const dims = DIMENSIONES_INNOVACION;
+  const n = dims.length;
+  const size = 260, center = size / 2, maxR = 95;
+  function punto(i, valor) {
+    const angle = (-90 + i * (360 / n)) * Math.PI / 180;
+    const r = (valor / 3) * maxR;
+    return [center + r * Math.cos(angle), center + r * Math.sin(angle)];
+  }
+  let rings = '';
+  [1, 2, 3].forEach(level => {
+    const pts = dims.map((d, i) => punto(i, level).join(',')).join(' ');
+    rings += `<polygon points="${pts}" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="1"/>`;
+  });
+  let axes = '';
+  dims.forEach((d, i) => {
+    const end = punto(i, 3);
+    const labelPt = punto(i, 3.55);
+    axes += `<line x1="${center}" y1="${center}" x2="${end[0]}" y2="${end[1]}" stroke="rgba(255,255,255,0.14)" stroke-width="1"/>`;
+    axes += `<text x="${labelPt[0]}" y="${labelPt[1]}" font-size="10" fill="#666" text-anchor="middle">${d.label}</text>`;
+  });
+  const dataPts = dims.map((d, i) => punto(i, scores[d.key]).join(',')).join(' ');
+  const dataPoly = `<polygon points="${dataPts}" fill="rgba(91,42,134,0.25)" stroke="#c4b5fd" stroke-width="2"/>`;
+  return `<svg viewBox="0 0 ${size} ${size}" width="260" height="260">${rings}${axes}${dataPoly}</svg>`;
+}
+
+function renderEvaluacion(container) {
+  const data = state.evaluacion;
+  const lista = state.propuestasGeneradas.lista.filter(p => state.propuestasGeneradas.seleccionadas.includes(p.id));
+
+  if (data.finalizado) { renderPantallaFinalPropuesta(container); return; }
+
+  const propuestaVista = lista.find(p => p.id === data.propuestaEnEvaluacionId) || null;
+
+  container.innerHTML = `
+    <h1>Evaluación Sistémica</h1>
+    <p class="subtitle">El sistema comparó tus ${lista.length} propuestas seleccionadas y preeligió la de mayor promedio de innovación. Puedes aceptarla o elegir otra manualmente más abajo.</p>
+    ${renderTablaComparativa(lista)}
+    <div class="hint">Los puntajes de partida vienen del generador de reglas, a partir del formato y el mecanismo de esta propuesta. Puedes ajustarlos con los deslizadores si no estás de acuerdo.</div>
+    <label for="selPropuestaEval">Propuesta a evaluar en detalle</label>
+    <select id="selPropuestaEval">
+      <option value="">— Selecciona una propuesta —</option>
+      ${lista.map(p => `<option value="${p.id}" ${data.propuestaEnEvaluacionId === p.id ? 'selected' : ''}>${escapeHtml(p.nombre)}</option>`).join('')}
+    </select>
+    <div id="evalDetalleWrap">${propuestaVista ? renderDetalleEvaluacion(propuestaVista) : '<div class="hint">Elige una propuesta arriba para ver su diagnóstico.</div>'}</div>
+    <div class="nav-row">
+      <button class="btn-secondary" id="btnAtras">Atrás</button>
+      <span class="spacer"></span>
+      <button class="btn-primary" id="btnVerFinal" ${data.propuestaElegidaId ? '' : 'disabled'}>Ver propuesta final</button>
+    </div>
+  `;
+
+  document.getElementById('selPropuestaEval').addEventListener('change', (ev) => {
+    data.propuestaEnEvaluacionId = ev.target.value || null;
+    render();
+  });
+  document.getElementById('btnAtras').addEventListener('click', irAEtapaAnterior);
+  document.getElementById('btnVerFinal').addEventListener('click', () => { data.finalizado = true; render(); });
+
+  if (propuestaVista) vincularEventosDetalleEvaluacion(propuestaVista);
+}
+
+function renderTablaComparativa(lista) {
+  const data = state.evaluacion;
+  return `
+    <div class="tabla-comparativa-wrap">
+      <table class="tabla-comparativa">
+        <thead>
+          <tr>
+            <th>Propuesta</th>
+            ${DIMENSIONES_INNOVACION.map(d => `<th>${d.label}</th>`).join('')}
+            <th>Promedio</th>
+            <th>Horizonte</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${lista.map(p => {
+            const scores = data.scoresPorPropuesta[p.id] || p.scores;
+            const prom = promedioScores(scores).toFixed(1);
+            const h = calcularHorizonte(scores).horizonte;
+            const esElegida = data.propuestaElegidaId === p.id;
+            return `<tr class="${esElegida ? 'fila-recomendada' : ''}">
+              <td>${escapeHtml(p.nombre)} ${esElegida ? '★' : ''}</td>
+              ${DIMENSIONES_INNOVACION.map(d => `<td>${scores[d.key]}</td>`).join('')}
+              <td><strong>${prom}</strong></td>
+              <td>${h}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    ${data.elegidaAutomaticamente && data.propuestaElegidaId ? '<div class="hint">★ Recomendada automáticamente por el sistema. Puedes cambiarla eligiendo otra manualmente en el detalle de abajo.</div>' : ''}
+  `;
+}
+
+function renderDetalleEvaluacion(propuesta) {
+  const data = state.evaluacion;
+  if (!data.scoresPorPropuesta[propuesta.id]) data.scoresPorPropuesta[propuesta.id] = { ...propuesta.scores };
+  const scores = data.scoresPorPropuesta[propuesta.id];
+  const elegida = data.propuestaElegidaId === propuesta.id;
+  return `
+    <div class="question-text" id="descripcionAnclada">
+      <strong>Evaluando: ${escapeHtml(propuesta.nombre)}</strong><br>${escapeHtml(propuesta.descripcion)}
+    </div>
+    <div id="slidersWrap">${DIMENSIONES_INNOVACION.map(d => renderSliderDimPara(d, scores)).join('')}</div>
+    <div class="radar-wrap" id="radarWrap">${generarRadarSVG(scores)}</div>
+    <div class="diagnostico-box" id="diagnosticoBox">${generarDiagnostico(scores)}</div>
+    <h3>Horizonte de innovación frente al mercado actual</h3>
+    <div class="diagnostico-box" id="horizonteBox">${generarDiagnosticoHorizonte(scores)}</div>
+    <h3>Posibles mejoras</h3>
+    <p class="subtitle" style="margin-bottom:14px; max-width:none;">Compáralas y decide cuáles aplicar. Cada una suma un punto a su dimensión; puedes deshacerla si cambias de opinión.</p>
+    <div id="mejoraBox">${renderMejoraBox(propuesta.id, scores, propuesta.scores)}</div>
+    <div class="nav-row" style="margin-bottom:6px;">
+      <span class="spacer"></span>
+      <button class="${elegida ? 'btn-primary' : 'btn-secondary'}" id="btnElegirPropuesta">${elegida ? '✓ Elegida para profundizar' : 'Elegir esta propuesta para profundizar'}</button>
+    </div>
+  `;
+}
+
+function renderMejoraBox(propuestaId, scores, scoresOriginales) {
+  const disponibles = obtenerMejorasDisponibles(scoresOriginales);
+  const aplicadas = state.evaluacion.mejorasAplicadas[propuestaId] || [];
+  if (disponibles.length === 0) {
+    return `<div class="mejora-box">Esta propuesta ya está en el nivel máximo en las seis dimensiones. No hay más mejoras que sugerir.</div>`;
+  }
+  return `
+    <div class="mejora-lista">
+      ${disponibles.map(d => {
+        const aplicada = aplicadas.includes(d.key);
+        return `
+          <div class="mejora-item ${aplicada ? 'aplicada' : ''}">
+            <div class="mejora-item-texto">
+              <div class="mejora-etiqueta">${d.label} — nivel actual: ${NIVELES_INNOVACION[scores[d.key]]}</div>
+              <p>${MEJORAS_POR_DIMENSION[d.key]}</p>
+            </div>
+            <button class="${aplicada ? 'btn-primary' : 'btn-secondary'} btn-toggle-mejora" data-dim="${d.key}">${aplicada ? '✓ Aplicada' : 'Aplicar'}</button>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderSliderDimPara(d, scores) {
+  const val = scores[d.key];
+  const color = COLORES_INTENSIDAD[val];
+  return `
+    <div class="dim-row">
+      <div class="dim-label"><span>${d.label}</span><span class="dim-level" id="lvl_${d.key}" style="color:${color};">${NIVELES_INNOVACION[val]}</span></div>
+      <div class="hint">${d.desc}</div>
+      <input type="range" min="0" max="3" step="1" value="${val}" id="slider_${d.key}" style="accent-color:${color};">
+    </div>
+  `;
+}
+
+function vincularEventosDetalleEvaluacion(propuesta) {
+  const data = state.evaluacion;
+  const scores = data.scoresPorPropuesta[propuesta.id];
+
+  function refrescarMejora() {
+    document.getElementById('mejoraBox').innerHTML = renderMejoraBox(propuesta.id, scores, propuesta.scores);
+    vincularEventosMejora();
+  }
+
+  function refrescarTodo() {
+    document.getElementById('radarWrap').innerHTML = generarRadarSVG(scores);
+    document.getElementById('diagnosticoBox').innerHTML = generarDiagnostico(scores);
+    document.getElementById('horizonteBox').innerHTML = generarDiagnosticoHorizonte(scores);
+    refrescarMejora();
+  }
+
+  function vincularEventosMejora() {
+    document.querySelectorAll('.btn-toggle-mejora').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const dimKey = btn.dataset.dim;
+        if (!data.mejorasAplicadas[propuesta.id]) data.mejorasAplicadas[propuesta.id] = [];
+        const aplicadas = data.mejorasAplicadas[propuesta.id];
+        const idx = aplicadas.indexOf(dimKey);
+        if (idx >= 0) {
+          // ya estaba aplicada: se desmarca y se revierte el punto que había sumado
+          aplicadas.splice(idx, 1);
+          scores[dimKey] = Math.max(0, scores[dimKey] - 1);
+        } else {
+          aplicadas.push(dimKey);
+          scores[dimKey] = Math.min(3, scores[dimKey] + 1);
+        }
+        const color = COLORES_INTENSIDAD[scores[dimKey]];
+        const slider = document.getElementById(`slider_${dimKey}`);
+        slider.value = scores[dimKey];
+        slider.style.accentColor = color;
+        const lvl = document.getElementById(`lvl_${dimKey}`);
+        lvl.textContent = NIVELES_INNOVACION[scores[dimKey]]; lvl.style.color = color;
+        refrescarTodo();
+      });
+    });
+  }
+
+  DIMENSIONES_INNOVACION.forEach(d => {
+    const slider = document.getElementById(`slider_${d.key}`);
+    slider.addEventListener('input', (ev) => {
+      const val = parseInt(ev.target.value, 10);
+      const color = COLORES_INTENSIDAD[val];
+      scores[d.key] = val;
+      const lvl = document.getElementById(`lvl_${d.key}`);
+      lvl.textContent = NIVELES_INNOVACION[val]; lvl.style.color = color;
+      slider.style.accentColor = color;
+      refrescarTodo();
+    });
+  });
+  document.getElementById('btnElegirPropuesta').addEventListener('click', () => {
+    data.propuestaElegidaId = propuesta.id;
+    data.elegidaAutomaticamente = false;
+    render();
+  });
+  vincularEventosMejora();
+}
+
+/* ---------- Pantalla final: propuesta elegida, desarrollada y técnica ---------- */
+function generarProjectBoard(propuesta, scores) {
+  const e = state.encuadre;
+  const contexto = nombreContexto(e.contextoId);
+  const usuario = e.huecos.usuario || 'el usuario definido en el Encuadre';
+  const momento = e.huecos.momento || 'el momento definido en el Encuadre';
+  const restriccion = e.huecos.restriccion || 'la restricción definida en el Encuadre';
+  const significado = state.giro.significado || 'el significado definido en el Giro Semántico';
+  const tradicional = state.giro.tradicional || 'un souvenir genérico con el logo institucional';
+  const espec = propuesta.especificaciones;
+  const mecanismo = MECANISMOS_INNOVACION.find(m => m.id === propuesta.mecanismoId);
+  const mecanismoFrase = mecanismo ? mecanismo.variantes[0] : '';
+  const nivelGeneral = clasificarNivel(promedioScores(scores));
+  const h = calcularHorizonte(scores);
+  const elementosDeconstruccion = Object.values(state.deconstruccion.niveles).flat();
+  const perspectiva = state.red.campos.campo1 || '';
+
+  return {
+    queEs: `Tipología: ${propuesta.formato}, con una cualidad diferencial de ${propuesta.mecanismo.toLowerCase()} (${mecanismoFrase}). Materia: ${espec.material}. Signo (lo primero que comunica): traduce el significado "${significado}", dándole protagonismo a ${espec.forma}. Función: ${espec.interfaz}; su rasgo más característico es que ${espec.detalle}.`,
+
+    contextoUso: `Situación de uso: se vive principalmente alrededor de "${momento}", dentro de ${contexto} — un momento donde ${usuario} está especialmente receptivo a lo que esta pieza representa. Situación de compra/adquisición: se adquiriría en un punto asociado a ${contexto} (una tienda o espacio institucional, similar en función al Almacén Mapuka en el caso de Uninorte), típicamente en el mismo momento o cerca de "${momento}", no como una compra impulsiva sino ligada a esa ocasión concreta.`,
+
+    paraQuien: `Usuario: ${usuario}. Necesidad y satisfactores actuales: hoy esa necesidad de recuerdo/pertenencia suele resolverse con "${tradicional}" — un satisfactor genérico que cumple la función básica pero no conecta con el significado real. Segmentación y nicho: dentro de ese público general, el nicho más afín es quien valora ${significado.toLowerCase()}; su tendencia de consumo es priorizar objetos o experiencias con historia y participación por encima del precio o la practicidad pura.`,
+
+    comoHacerlo: `Materiales y procesos: ${espec.material}, coherente con el mecanismo de "${propuesta.mecanismo.toLowerCase()}". Frente a la capacidad instalada: se recomienda producir aprovechando los talleres y procesos que ${contexto} ya domina (coherente con lo registrado en tu Deconstrucción${elementosDeconstruccion.length ? ': ' + elementosDeconstruccion.slice(0, 2).join(', ') : ''}); los procesos que excedan esa capacidad (electrónica, impresión industrial u otros procesos especializados) deberían tercerizarse con proveedores externos en vez de intentar producirse internamente.`,
+
+    comoFunciona: `Interacción producto-usuario: ${espec.interfaz}. Secuencia de uso: adquisición en el momento de "${momento}" → interacción descrita arriba → permanencia como recuerdo o vínculo continuo, no como un objeto que se descarta rápido. Comercialización: se daría a conocer por los mismos canales que ya identificaste en Deconstrucción y Red de Intérpretes${perspectiva ? ' (' + perspectiva + ')' : ''}, con una presentación que explique el significado (no solo el objeto) y un precio coherente con "${restriccion}".`,
+
+    porQueLoHago: `Propuesta de valor principal (el argumento más decisivo de compra): que ${usuario} sienta "${significado}" de una forma que ningún souvenir genérico logra. Argumento secundario: respeta "${restriccion}", así que es viable de producir sin comprometer el presupuesto. Para nichos más específicos: se diferencia de lo que ya ofrecen otras universidades — la mayoría se queda en merchandising institucional genérico o no tiene souvenir de diseño propio — por lo que esta propuesta, de nivel de innovación ${nivelGeneral} y horizonte ${h.horizonte}, ocupa un espacio que hoy está prácticamente vacío en el panorama competitivo.`
+  };
+}
+
+function renderPantallaFinalPropuesta(container) {
+  const data = state.evaluacion;
+  const propuesta = state.propuestasGeneradas.lista.find(p => p.id === data.propuestaElegidaId);
+  const scores = data.scoresPorPropuesta[propuesta.id] || propuesta.scores;
+  const nivelGeneral = clasificarNivel(promedioScores(scores));
+  const board = generarProjectBoard(propuesta, scores);
+
+  container.innerHTML = `
+    <h1>Propuesta a desarrollar</h1>
+    <div class="propuesta-final-nombre">${escapeHtml(propuesta.nombre)}</div>
+    <div class="propuesta-full-tags">
+      <span class="tag-formato">${escapeHtml(propuesta.formato)}</span>
+      <span class="tag-mecanismo">${escapeHtml(propuesta.mecanismo)}</span>
+      <span class="tag-nivel">${nivelGeneral}</span>
+      ${propuesta.diferenciador ? '<span class="badge-diferenciador">🏆 Diferenciador frente a la competencia</span>' : ''}
+    </div>
+
+    <div class="radar-wrap">${generarRadarSVG(scores)}</div>
+
+    <h3>1. ¿Qué es?</h3>
+    <p class="propuesta-eval-desc">${escapeHtml(board.queEs)}</p>
+
+    <h3>2. Contexto</h3>
+    <p class="propuesta-eval-desc">${escapeHtml(board.contextoUso)}</p>
+
+    <h3>3. ¿Para quién?</h3>
+    <p class="propuesta-eval-desc">${escapeHtml(board.paraQuien)}</p>
+
+    <h3>4. ¿Cómo hacerlo posible?</h3>
+    <p class="propuesta-eval-desc">${escapeHtml(board.comoHacerlo)}</p>
+
+    <h3>5. ¿Cómo funciona?</h3>
+    <p class="propuesta-eval-desc">${escapeHtml(board.comoFunciona)}</p>
+
+    <h3>6. ¿Por qué lo hago?</h3>
+    <p class="propuesta-eval-desc">${escapeHtml(board.porQueLoHago)}</p>
+
+    <h3>Horizonte de innovación frente al mercado actual</h3>
+    <p class="propuesta-eval-desc">${generarDiagnosticoHorizonte(scores)}</p>
+
+    <div class="nav-row" style="flex-wrap:wrap; gap:8px;">
+      <button class="btn-secondary" id="btnVolver">← Volver a evaluación</button>
+      <span class="spacer"></span>
+      <button class="btn-secondary" id="btnGuardarHistorial" ${propuesta.guardadoEnHistorial ? 'disabled' : ''}>${propuesta.guardadoEnHistorial ? '✓ Guardada' : 'Guardar en historial'}</button>
+      <button class="btn-secondary" id="btnDescargarFicha">Descargar ficha</button>
+      <button class="btn-primary" id="btnNuevaPropuesta">🔄 Nueva propuesta</button>
+    </div>
+    <div id="confirmNuevaPropuestaWrap"></div>
+  `;
+
+  document.getElementById('btnVolver').addEventListener('click', () => { data.finalizado = false; render(); });
+
+  document.getElementById('btnNuevaPropuesta').addEventListener('click', () => {
+    document.getElementById('confirmNuevaPropuestaWrap').innerHTML = `
+      <div class="mejora-box" style="margin-top:12px;">
+        <strong>¿Empezar una propuesta nueva?</strong>
+        <p>Esto reinicia el proceso desde el Encuadre. Tu historial guardado y tus contextos personalizados se conservan; lo que no hayas guardado o descargado de esta propuesta se pierde.</p>
+        <div class="nav-row" style="margin-top:8px; margin-bottom:0;">
+          <button class="btn-secondary" id="btnCancelarNueva">Cancelar</button>
+          <span class="spacer"></span>
+          <button class="btn-primary" id="btnConfirmarNueva">Sí, empezar de nuevo</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('btnCancelarNueva').addEventListener('click', () => {
+      document.getElementById('confirmNuevaPropuestaWrap').innerHTML = '';
+    });
+    document.getElementById('btnConfirmarNueva').addEventListener('click', reiniciarProceso);
+  });
+
+  function construirTextoFicha() {
+    const e = state.encuadre;
+    return [
+      `PROJECT BOARD — ${propuesta.nombre}`,
+      `Contexto: ${nombreContexto(e.contextoId)}`,
+      `Fecha: ${new Date().toLocaleString()}`,
+      '',
+      `Formato: ${propuesta.formato} | Mecanismo: ${propuesta.mecanismo} | Nivel de innovación: ${nivelGeneral}`,
+      '',
+      '1. ¿QUÉ ES?', board.queEs, '',
+      '2. CONTEXTO', board.contextoUso, '',
+      '3. ¿PARA QUIÉN?', board.paraQuien, '',
+      '4. ¿CÓMO HACERLO POSIBLE?', board.comoHacerlo, '',
+      '5. ¿CÓMO FUNCIONA?', board.comoFunciona, '',
+      '6. ¿POR QUÉ LO HAGO?', board.porQueLoHago, '',
+      'HORIZONTE DE INNOVACIÓN',
+      generarDiagnosticoHorizonte(scores).replace(/<\/?strong>/g, '')
+    ].join('\n');
+  }
+
+  document.getElementById('btnDescargarFicha').addEventListener('click', () => {
+    const nombreArchivo = `propuesta_${propuesta.formatoId}_${Date.now()}.txt`;
+    descargarTexto(nombreArchivo, construirTextoFicha());
+  });
+
+  document.getElementById('btnGuardarHistorial').addEventListener('click', () => {
+    if (propuesta.guardadoEnHistorial) return; // ya se guardó, no duplicar
+    guardarEnHistorial({
+      timestamp: Date.now(),
+      contexto: nombreContexto(state.encuadre.contextoId),
+      nombrePropuesta: propuesta.nombre,
+      formato: propuesta.formato,
+      mecanismo: propuesta.mecanismo,
+      nivel: nivelGeneral,
+      horizonte: calcularHorizonte(scores).horizonte,
+      ficha: construirTextoFicha(),
+      // snapshots necesarios para poder reabrir esta propuesta directamente en Evaluación
+      propuesta: { ...propuesta, scores: { ...scores } },
+      encuadreSnapshot: {
+        contextoId: state.encuadre.contextoId,
+        reto: state.encuadre.reto,
+        huecos: { ...state.encuadre.huecos }
+      },
+      giroSnapshot: { tradicional: state.giro.tradicional, significado: state.giro.significado },
+      deconstruccionSnapshot: JSON.parse(JSON.stringify(state.deconstruccion.niveles)),
+      redSnapshot: { ...state.red.campos }
+    });
+    propuesta.guardadoEnHistorial = true;
+    const btn = document.getElementById('btnGuardarHistorial');
+    btn.textContent = '✓ Guardada';
+    btn.disabled = true;
+  });
+}
+
+// Reinicia el proceso completo para empezar una propuesta nueva.
+// Conserva los contextos personalizados y el historial guardado.
+function reiniciarProceso() {
+  state.currentStageIndex = 0;
+  state.maxStageReached = 0;
+  const contextoPrevio = state.encuadre.contextoId;
+  state.encuadre = { screen: 0, contextoId: contextoPrevio, reto: '', huecos: { usuario: '', momento: '', restriccion: '' }, cola: null };
+  state.deconstruccion = { niveles: { objeto: [], servicio: [], sistema: [], cultura: [] }, seedApplied: false };
+  state.giro = { tradicional: '', significado: '', estadoSignificado: 'sugerido', arquetipoElegidoId: null, generado: false };
+  state.red = { campos: { campo1: '', campo2: '' }, editado: { campo1: false, campo2: false }, generado: false };
+  state.propuestasGeneradas = { lista: [], generado: false, seleccionadas: [], mostrarDiferenciacion: false };
+  state.evaluacion = { propuestaEnEvaluacionId: null, propuestaElegidaId: null, elegidaAutomaticamente: false, scoresPorPropuesta: {}, mejorasAplicadas: {}, finalizado: false };
+  render();
+}
+
+// Carga una propuesta guardada del historial directamente en Evaluación Sistémica.
+function cargarDesdeHistorial(registro) {
+  state.encuadre.contextoId = registro.encuadreSnapshot.contextoId;
+  state.encuadre.reto = registro.encuadreSnapshot.reto;
+  state.encuadre.huecos = { ...registro.encuadreSnapshot.huecos };
+  state.deconstruccion.niveles = JSON.parse(JSON.stringify(registro.deconstruccionSnapshot));
+  state.giro.tradicional = registro.giroSnapshot.tradicional;
+  state.giro.significado = registro.giroSnapshot.significado;
+  state.giro.generado = true;
+  state.red.campos = { ...registro.redSnapshot };
+  state.red.generado = true;
+
+  state.propuestasGeneradas.lista = [{ ...registro.propuesta, guardadoEnHistorial: true }];
+  state.propuestasGeneradas.seleccionadas = [registro.propuesta.id];
+  state.propuestasGeneradas.generado = true;
+
+  state.evaluacion.scoresPorPropuesta = { [registro.propuesta.id]: { ...registro.propuesta.scores } };
+  state.evaluacion.propuestaEnEvaluacionId = registro.propuesta.id;
+  state.evaluacion.propuestaElegidaId = registro.propuesta.id;
+  state.evaluacion.elegidaAutomaticamente = false;
+  state.evaluacion.mejorasAplicadas = {};
+  state.evaluacion.finalizado = false;
+
+  state.currentStageIndex = state.stages.indexOf('evaluacion');
+  state.maxStageReached = state.currentStageIndex;
+  state.view = 'proceso';
+  render();
+}
+
+/* =========================================================
+   14. MENÚ SEPARADO: GESTIONAR CONTEXTOS
+   ========================================================= */
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+// Extrae texto real de archivos .txt/.md para alimentar el prompt de la IA.
+// Otros formatos (PDF, Word) solo quedan guardados como referencia por nombre.
+function extraerDocumento(file) {
+  return new Promise((resolve) => {
+    const esTexto = /\.(txt|md)$/i.test(file.name);
+    if (!esTexto) { resolve({ nombre: file.name, tamano: file.size, tipo: file.type, textoExtraido: null }); return; }
+    const reader = new FileReader();
+    reader.onload = () => resolve({ nombre: file.name, tamano: file.size, tipo: file.type, textoExtraido: String(reader.result).slice(0, 3000) });
+    reader.onerror = () => resolve({ nombre: file.name, tamano: file.size, tipo: file.type, textoExtraido: null });
+    reader.readAsText(file);
+  });
+}
+function renderArchivosAdjuntos() {
+  const cont = document.getElementById('listaArchivos');
+  if (!cont) return;
+  if (archivosSeleccionados.length === 0) { cont.innerHTML = `<div class="hint">Aún no has adjuntado documentos.</div>`; return; }
+  cont.innerHTML = archivosSeleccionados.map((f, i) => `
+    <div class="file-chip"><span>${escapeHtml(f.name)} <small>(${formatBytes(f.size)})</small></span><button type="button" class="btn-remove-file" data-idx="${i}">✕</button></div>
+  `).join('');
+  cont.querySelectorAll('.btn-remove-file').forEach(btn => {
+    btn.addEventListener('click', () => { archivosSeleccionados.splice(parseInt(btn.dataset.idx, 10), 1); renderArchivosAdjuntos(); });
+  });
+}
+
+function renderGestionContextos(container) {
+  container.innerHTML = `
+    <h1>Gestionar contextos</h1>
+    <p class="subtitle">Esta lista es independiente del Encuadre. Agrega aquí un contexto con suficiente detalle para que el sistema pueda generar buenas sugerencias en las etapas posteriores.</p>
+    <div class="context-list" id="listaContextos"></div>
+    <hr class="section-divider">
+    <h1 style="font-size:16px;">Agregar nuevo contexto</h1>
+    <label for="ncNombre">Nombre <span class="required-mark">*</span></label>
+    <input type="text" id="ncNombre" placeholder="Ej. Museo Mapuka, Fundación X, mi propia marca...">
+    <label for="ncTipo">Tipo <span class="required-mark">*</span></label>
+    <select id="ncTipo">
+      <option value="empresa">Empresa o marca</option>
+      <option value="educacion">Universidad u otra institución educativa</option>
+      <option value="organizacion">Organización o comunidad</option>
+      <option value="otro">Otro</option>
+    </select>
+    <label for="ncDescripcion">Descripción <span class="required-mark">*</span></label>
+    <div class="hint">Descríbelo con suficiente profundidad: a qué se dedica, qué lo caracteriza y por qué alguien lo reconocería.</div>
+    <textarea id="ncDescripcion" placeholder="Ej. Fábrica de muebles artesanales del Caribe, fundada hace 30 años, conocida por su trabajo en madera nativa y su cercanía con los clientes en cada etapa del proceso de compra."></textarea>
+    <label for="ncPublico">Público principal <span class="required-mark">*</span></label>
+    <div class="hint">Describe a la persona o grupo con el que este contexto se relaciona con más frecuencia.</div>
+    <textarea id="ncPublico" placeholder="Ej. Familias que buscan muebles duraderos y con historia."></textarea>
+    <label for="ncValores">Valores o identidad clave <span class="required-mark">*</span></label>
+    <div class="hint">Palabras o conceptos que lo definen y que la propuesta debería respetar.</div>
+    <textarea id="ncValores" placeholder="Ej. Artesanía, cercanía, tradición, sostenibilidad."></textarea>
+    <label for="ncTono">Tono o estilo de comunicación (opcional)</label>
+    <textarea id="ncTono" placeholder="Ej. Cálido, cercano, sin tecnicismos."></textarea>
+    <label for="ncRestricciones">Restricciones típicas (opcional)</label>
+    <textarea id="ncRestricciones" placeholder="Ej. Producción artesanal, lotes pequeños, sin materiales sintéticos."></textarea>
+    <label for="ncEjemplos">Ejemplos de productos o iniciativas anteriores (opcional)</label>
+    <textarea id="ncEjemplos" placeholder="Ej. Línea de mecedoras conmemorativas para el aniversario 25."></textarea>
+    <label style="display:flex; align-items:center; gap:8px; font-weight:400;">
+      <input type="checkbox" id="ncCompetidora" style="width:auto; margin:0;">
+      Es una universidad competidora (para el análisis de diferenciación)
+    </label>
+    <div class="hint" style="margin-top:2px;">Si la marcas, su descripción se usará como referencia de "lo que ya existe" al analizar qué tan diferenciadoras son tus propuestas.</div>
+    <label for="ncArchivos">Documentos adicionales (opcional)</label>
+    <div class="hint">Adjunta manuales de marca, informes u otro material de referencia. De los archivos .txt o .md se extrae el texto y se usa para generar propuestas; otros formatos (PDF, Word, etc.) solo quedan guardados como referencia por nombre — extraer su contenido es trabajo de una próxima iteración.</div>
+    <div class="file-input-wrap"><input type="file" id="ncArchivos" multiple></div>
+    <div id="listaArchivos"></div>
+    <div id="errorContexto" class="hint" style="color:#fb7185; display:none;"></div>
+    <div class="nav-row" style="margin-top:18px;"><span class="spacer"></span><button class="btn-primary" id="btnGuardarContexto">Guardar contexto</button></div>
+  `;
+  renderListaContextos();
+  renderArchivosAdjuntos();
+  document.getElementById('ncArchivos').addEventListener('change', (ev) => {
+    Array.from(ev.target.files).forEach(f => archivosSeleccionados.push(f));
+    ev.target.value = ''; renderArchivosAdjuntos();
+  });
+  document.getElementById('btnGuardarContexto').addEventListener('click', async () => {
+    const nombre = document.getElementById('ncNombre').value.trim();
+    const tipo = document.getElementById('ncTipo').value;
+    const descripcion = document.getElementById('ncDescripcion').value.trim();
+    const publico = document.getElementById('ncPublico').value.trim();
+    const valores = document.getElementById('ncValores').value.trim();
+    const tono = document.getElementById('ncTono').value.trim();
+    const restricciones = document.getElementById('ncRestricciones').value.trim();
+    const ejemplos = document.getElementById('ncEjemplos').value.trim();
+    const esCompetidora = document.getElementById('ncCompetidora').checked;
+    const errorBox = document.getElementById('errorContexto');
+    if (!nombre || !descripcion || !publico || !valores) {
+      errorBox.textContent = 'Completa al menos: nombre, descripción, público principal y valores. Este contexto necesita suficiente detalle para generar buenas sugerencias más adelante.';
+      errorBox.style.display = 'block';
+      return;
+    }
+    errorBox.style.display = 'none';
+    const btnGuardar = document.getElementById('btnGuardarContexto');
+    btnGuardar.disabled = true; btnGuardar.textContent = 'Procesando documentos...';
+    const documentos = await Promise.all(archivosSeleccionados.map(extraerDocumento));
+    contextosPersonalizados.push({
+      id: 'custom_' + Date.now(), nombre, tipo, descripcion, publico, valores, tono, restricciones, ejemplos, esCompetidora,
+      documentos
+    });
+    archivosSeleccionados = [];
+    render();
+  });
+}
+
+function renderListaContextos() {
+  const lista = document.getElementById('listaContextos');
+  if (contextosPersonalizados.length === 0) { lista.innerHTML = `<div class="empty-state">Todavía no has agregado contextos personalizados en esta sesión.</div>`; return; }
+  lista.innerHTML = contextosPersonalizados.map(c => `
+    <div class="context-list-item">
+      <div class="ctx-name">${escapeHtml(c.nombre)}</div>
+      <div class="ctx-type">${escapeHtml(c.tipo)}</div>
+      ${c.documentos && c.documentos.length > 0 ? `<div class="ctx-docs">📎 ${c.documentos.length} documento(s) adjunto(s)</div>` : ''}
+    </div>
+  `).join('');
+}
+
+/* =========================================================
+   14.1 VISTA SEPARADA: HISTORIAL DE PROPUESTAS GUARDADAS
+   ========================================================= */
+function renderHistorial(container) {
+  const historial = leerHistorial();
+  container.innerHTML = `
+    <h1>Historial de propuestas</h1>
+    <p class="subtitle">Propuestas que has guardado en este navegador. Se tienen en cuenta para variar futuras generaciones.</p>
+    <div id="listaHistorial"></div>
+  `;
+  const lista = document.getElementById('listaHistorial');
+  if (historial.length === 0) {
+    lista.innerHTML = `<div class="empty-state">Todavía no has guardado ninguna propuesta. Desde la pantalla final de una propuesta, usa "Guardar en historial".</div>`;
+    return;
+  }
+  lista.innerHTML = historial.map((h, i) => `
+    <div class="context-list-item" id="histItem_${i}">
+      <div class="ctx-name">${escapeHtml(h.nombrePropuesta)}</div>
+      <div class="propuesta-full-tags" style="margin-top:6px;">
+        <span class="tag-formato">${escapeHtml(h.formato)}</span>
+        <span class="tag-mecanismo">${escapeHtml(h.mecanismo)}</span>
+        <span class="tag-nivel">${escapeHtml(h.nivel)} · ${escapeHtml(h.horizonte)}</span>
+      </div>
+      <div class="hint" style="margin:8px 0 8px 0;">${escapeHtml(h.contexto)} — ${new Date(h.timestamp).toLocaleString()}</div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn-secondary" data-idx="${i}" data-accion="descargar">Descargar ficha</button>
+        ${h.propuesta ? `<button class="btn-primary" data-idx="${i}" data-accion="evaluar">Ver en Evaluación Sistémica</button>` : ''}
+        <button class="btn-secondary" data-idx="${i}" data-accion="eliminar" style="color:#fb7185; border-color:#fb7185;">Eliminar</button>
+      </div>
+      <div id="confirmEliminar_${i}"></div>
+    </div>
+  `).join('');
+  lista.querySelectorAll('button[data-idx]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx, 10);
+      const registro = historial[idx];
+      if (btn.dataset.accion === 'evaluar') {
+        cargarDesdeHistorial(registro);
+      } else if (btn.dataset.accion === 'eliminar') {
+        document.getElementById(`confirmEliminar_${idx}`).innerHTML = `
+          <div class="mejora-box" style="margin-top:10px;">
+            <strong>¿Eliminar "${escapeHtml(registro.nombrePropuesta)}" del historial?</strong>
+            <div class="nav-row" style="margin-top:8px; margin-bottom:0;">
+              <button class="btn-secondary" id="btnCancelarEliminar_${idx}">Cancelar</button>
+              <span class="spacer"></span>
+              <button class="btn-primary" id="btnConfirmarEliminar_${idx}" style="background:#fb7185;">Sí, eliminar</button>
+            </div>
+          </div>
+        `;
+        document.getElementById(`btnCancelarEliminar_${idx}`).addEventListener('click', () => {
+          document.getElementById(`confirmEliminar_${idx}`).innerHTML = '';
+        });
+        document.getElementById(`btnConfirmarEliminar_${idx}`).addEventListener('click', () => {
+          eliminarDeHistorial(registro.timestamp);
+          render();
+        });
+      } else {
+        descargarTexto(`propuesta_guardada_${registro.timestamp}.txt`, registro.ficha);
+      }
+    });
+  });
+}
+
+
+render();
+</script>
+</body>
+</html>
